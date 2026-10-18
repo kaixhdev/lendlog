@@ -1,12 +1,14 @@
 {
-  "name": "@workspace/lendlog",
-  "version": "1.0.0",
+  "name": "lendlog",
+  "version": "1.0.1",
   "private": true,
   "main": "expo-router/entry",
   "scripts": {
-    "dev": "EXPO_PACKAGER_PROXY_URL=https://$REPLIT_EXPO_DEV_DOMAIN EXPO_PUBLIC_DOMAIN=$REPLIT_DEV_DOMAIN EXPO_PUBLIC_REPL_ID=$REPL_ID REACT_NATIVE_PACKAGER_HOSTNAME=$REPLIT_DEV_DOMAIN pnpm exec expo start --localhost --port $PORT",
+    "start": "expo start",
+    "dev": "expo start",
     "build": "node scripts/build.js",
     "serve": "node server/serve.js",
+    "test": "node --test tests/*.test.js",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "android": "expo run:android",
     "ios": "expo run:ios"

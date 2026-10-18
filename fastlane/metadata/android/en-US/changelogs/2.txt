@@ -1,0 +1,5 @@
+• Initial official F-Droid release of LendLog
+• Track money lent and borrowed with partial and full repayment logging
+• Visual analytics, creditor and debtor ranking, and monthly trends
+• Offline JSON backup and restore
+• Light and dark theme support with custom currency selection

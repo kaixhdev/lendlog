@@ -403,7 +403,7 @@ export default function ProfileScreen() {
           </View>
           <View style={{ flex: 1 }}>
             <Text style={[styles.aboutName, { color: c.text, fontFamily: "Inter_700Bold" }]}>LendLog</Text>
-            <Text style={[styles.aboutVersion, { color: c.text3, fontFamily: "Inter_400Regular" }]}>Version 1.0</Text>
+            <Text style={[styles.aboutVersion, { color: c.text3, fontFamily: "Inter_400Regular" }]}>Version 1.0.1</Text>
           </View>
         </View>
         <Text style={[styles.aboutDesc, { color: c.text2, fontFamily: "Inter_400Regular" }]}>

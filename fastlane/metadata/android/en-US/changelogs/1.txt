@@ -1,0 +1,3 @@
+• Initial release of LendLog
+• Track money lent and borrowed with repayment logging
+• Offline JSON backup and restore

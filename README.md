@@ -11,7 +11,7 @@
 </p>
 
 <p align="center">
-  <a href="https://mega.nz/file/YRMm3C4A#IcCMO4PgZmA_IavLVtfoXs99uE0MKyotSNo56OtWYek">
+  <a href="https://github.com/mrdevil42023/lendlog/releases/latest">
     <img src="https://img.shields.io/badge/%20Download%20APK-LendLog%20v1.0.1-brightgreen?style=for-the-badge" alt="Download APK"/>
   </a>
 </p>
@@ -154,7 +154,8 @@ To restore, tap **Import & Restore** and pick the backup file. This will replace
   "slug": "lendlog",
   "version": "1.0.1",
   "android": {
-    "package": "com.lendlog.app"
+    "package": "com.lendlog.app",
+    "versionCode": 2
   },
   "sdkVersion": "54.0.0"
 }
@@ -164,7 +165,7 @@ To restore, tap **Import & Restore** and pick the backup file. This will replace
 
 ## License
 
-MIT
+This project is licensed under the [MIT License](LICENSE).
 
 ---
 

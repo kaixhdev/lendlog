@@ -1,0 +1,11 @@
+LendLog is a clean, private, and fully offline personal lending and borrowing tracker. Keep track of money lent to or borrowed from friends, family, and colleagues without creating an account or storing data on any remote server.
+
+Features:
+• Track Lend & Borrow Records: Record transactions with amount, date, due date, person name, and custom notes.
+• Partial & Full Repayments: Log payments incrementally against open records until fully settled.
+• People Directory: View net balances per person at a glance to know who owes you and whom you owe.
+• Live Balance Calculations: Instantly monitor total lent, total borrowed, and your current net balance.
+• Analytics & Insights: Review 6-month lending trends, settlement rates, and creditor/debtor rankings.
+• Local Data Backup & Restore: Export your complete transaction history to JSON and restore whenever needed.
+• Customizable Preferences: Supports multi-currency symbols, light and dark themes, and custom profile details.
+• 100% Private & Offline: Operates entirely on-device with zero tracking, zero ads, and zero cloud dependencies.
