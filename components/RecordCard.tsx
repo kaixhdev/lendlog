@@ -15,7 +15,11 @@ interface Props {
 }
 
 function fmt(n: number, currency: string) {
-  return `${currency}${n.toLocaleString("en-IN", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
+  const hasDecimals = n % 1 !== 0;
+  return `${currency}${n.toLocaleString("en-IN", {
+    minimumFractionDigits: hasDecimals ? 2 : 0,
+    maximumFractionDigits: 2,
+  })}`;
 }
 
 export function RecordCard({ record, currency, onSettle, onEdit, onPay, onDelete }: Props) {

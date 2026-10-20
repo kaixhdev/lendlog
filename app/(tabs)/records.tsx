@@ -46,7 +46,11 @@ export default function RecordsScreen() {
   function fmt(n: number) {
     if (Math.abs(n) >= 100000) return `${currency}${(Math.abs(n) / 100000).toFixed(1)}L`;
     if (Math.abs(n) >= 1000) return `${currency}${(Math.abs(n) / 1000).toFixed(1)}K`;
-    return `${currency}${Math.abs(n).toLocaleString("en-IN", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
+    const hasDecimals = n % 1 !== 0;
+    return `${currency}${Math.abs(n).toLocaleString("en-IN", {
+      minimumFractionDigits: hasDecimals ? 2 : 0,
+      maximumFractionDigits: 2,
+    })}`;
   }
 
   return (

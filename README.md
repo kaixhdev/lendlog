@@ -11,8 +11,8 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/mrdevil42023/lendlog/releases/latest">
-    <img src="https://img.shields.io/badge/%20Download%20APK-LendLog%20v1.0.1-brightgreen?style=for-the-badge" alt="Download APK"/>
+  <a href="https://github.com/kaixhdev/lendlog/releases/latest">
+    <img src="https://img.shields.io/badge/%20Download%20APK-LendLog%20v1.0.2-brightgreen?style=for-the-badge" alt="Download APK"/>
   </a>
 </p>
 
@@ -113,7 +113,7 @@ preview/              # Screenshots
 ### Install
 
 ```bash
-git clone https://github.com/mrdevil42023/LendLog.git
+git clone https://github.com/kaixhdev/lendlog.git
 cd LendLog
 npm install
 ```

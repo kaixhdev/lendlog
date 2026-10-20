@@ -5,6 +5,25 @@ import type { AppSettings, FilterType, MonthlyData, Payment, PersonStats, Record
 const RECORDS_KEY = "lendlog_records";
 const SETTINGS_KEY = "lendlog_settings";
 
+export function round2(val: number): number {
+  return Math.round((val + Number.EPSILON) * 100) / 100;
+}
+
+function parseRecordDate(dateStr: string): Date | null {
+  if (!dateStr) return null;
+  const parts = dateStr.split("/");
+  if (parts.length === 3) {
+    const d = Number(parts[0]);
+    const m = Number(parts[1]) - 1;
+    const y = Number(parts[2]);
+    if (!isNaN(d) && !isNaN(m) && !isNaN(y)) {
+      return new Date(y, m, d);
+    }
+  }
+  const parsed = new Date(dateStr);
+  return isNaN(parsed.getTime()) ? null : parsed;
+}
+
 function genId(): string {
   return Date.now().toString() + Math.random().toString(36).substr(2, 9);
 }
@@ -73,12 +92,14 @@ export function StorageProvider({ children }: { children: React.ReactNode }) {
   };
 
   const createRecord = async (name: string, amount: number, type: "lent" | "borrowed", note: string, date: string, dueDate: string) => {
+    const trimmedName = name.trim() || "Unknown";
+    const validAmount = round2(Math.max(0, amount));
     const now = new Date().toISOString();
     const rec: Record = {
       id: genId(),
       type,
-      name: name.trim(),
-      amount,
+      name: trimmedName,
+      amount: validAmount,
       paid_amount: 0,
       note,
       date: date || todayStr(),
@@ -93,7 +114,21 @@ export function StorageProvider({ children }: { children: React.ReactNode }) {
   };
 
   const updateRecord = async (id: string, data: Partial<Record>) => {
-    const updated = records.map(r => r.id === id ? { ...r, ...data, updated: new Date().toISOString() } : r);
+    const now = new Date().toISOString();
+    const updated = records.map(r => {
+      if (r.id !== id) return r;
+      const nextAmount = data.amount !== undefined ? round2(Math.max(0, data.amount)) : r.amount;
+      const nextName = data.name !== undefined ? data.name.trim() : r.name;
+      const autoSettle = r.paid_amount >= nextAmount && nextAmount > 0;
+      return {
+        ...r,
+        ...data,
+        name: nextName,
+        amount: nextAmount,
+        settled: data.settled !== undefined ? data.settled : (autoSettle ? true : r.settled),
+        updated: now,
+      };
+    });
     await saveRecords(updated);
   };
 
@@ -107,10 +142,11 @@ export function StorageProvider({ children }: { children: React.ReactNode }) {
     const updated = records.map(r => {
       if (r.id !== id) return r;
       const isSettling = !r.settled;
+      const paymentsSum = round2(r.payments.reduce((sum, p) => sum + p.amount, 0));
       return {
         ...r,
         settled: isSettling,
-        paid_amount: isSettling ? r.amount : r.paid_amount,
+        paid_amount: isSettling ? r.amount : paymentsSum,
         settled_date: isSettling ? today : "",
         updated: now,
       };
@@ -125,7 +161,7 @@ export function StorageProvider({ children }: { children: React.ReactNode }) {
     const now = new Date().toISOString();
     const updated = records.map(r =>
       r.name.toLowerCase() === name.toLowerCase() && !r.settled
-        ? { ...r, settled: true, settled_date: today, updated: now }
+        ? { ...r, settled: true, paid_amount: r.amount, settled_date: today, updated: now }
         : r
     );
     await saveRecords(updated);
@@ -136,21 +172,27 @@ export function StorageProvider({ children }: { children: React.ReactNode }) {
   };
 
   const renamePerson = async (oldName: string, newName: string) => {
+    const trimmed = newName.trim();
+    if (!trimmed) return;
     const now = new Date().toISOString();
     const updated = records.map(r =>
       r.name.toLowerCase() === oldName.toLowerCase()
-        ? { ...r, name: newName.trim(), updated: now }
+        ? { ...r, name: trimmed, updated: now }
         : r
     );
     await saveRecords(updated);
   };
 
   const addPayment = async (recordId: string, amount: number, note: string, date: string) => {
+    const validAmount = round2(amount);
+    if (isNaN(validAmount) || validAmount <= 0) {
+      throw new Error("Payment amount must be greater than zero");
+    }
     const now = new Date().toISOString();
-    const payment: Payment = { id: genId(), amount, date: date || todayStr(), note };
+    const payment: Payment = { id: genId(), amount: validAmount, date: date || todayStr(), note: note ? note.trim() : "" };
     const updated = records.map(r => {
       if (r.id !== recordId) return r;
-      const newPaid = r.paid_amount + amount;
+      const newPaid = round2(r.paid_amount + validAmount);
       const autoSettle = newPaid >= r.amount;
       return {
         ...r,
@@ -169,8 +211,16 @@ export function StorageProvider({ children }: { children: React.ReactNode }) {
     const updated = records.map(r => {
       if (r.id !== recordId) return r;
       const payments = r.payments.filter(p => p.id !== paymentId);
-      const paid_amount = payments.reduce((sum, p) => sum + p.amount, 0);
-      return { ...r, payments, paid_amount, updated: now };
+      const paid_amount = round2(payments.reduce((sum, p) => sum + p.amount, 0));
+      const settled = paid_amount >= r.amount && r.amount > 0;
+      return {
+        ...r,
+        payments,
+        paid_amount,
+        settled,
+        settled_date: settled ? r.settled_date : "",
+        updated: now,
+      };
     });
     await saveRecords(updated);
   };
@@ -205,12 +255,13 @@ export function StorageProvider({ children }: { children: React.ReactNode }) {
       p.recordCount++;
       p.records.push(r);
       if (!r.settled) {
-        if (r.type === "lent") p.totalLent += r.amount - r.paid_amount;
-        else p.totalBorrowed += r.amount - r.paid_amount;
+        const remaining = round2(r.amount - r.paid_amount);
+        if (r.type === "lent") p.totalLent = round2(p.totalLent + remaining);
+        else p.totalBorrowed = round2(p.totalBorrowed + remaining);
       }
     }
     for (const p of map.values()) {
-      p.netBalance = p.totalLent - p.totalBorrowed;
+      p.netBalance = round2(p.totalLent - p.totalBorrowed);
     }
     return Array.from(map.values()).sort((a, b) => Math.abs(b.netBalance) - Math.abs(a.netBalance));
   };
@@ -220,18 +271,18 @@ export function StorageProvider({ children }: { children: React.ReactNode }) {
     let settledCount = 0;
     for (const r of records) {
       if (r.type === "lent") {
-        totalLent += r.amount;
-        if (!r.settled) pendingReceivable += r.amount - r.paid_amount;
+        totalLent = round2(totalLent + r.amount);
+        if (!r.settled) pendingReceivable = round2(pendingReceivable + (r.amount - r.paid_amount));
       } else {
-        totalBorrowed += r.amount;
-        if (!r.settled) pendingPayable += r.amount - r.paid_amount;
+        totalBorrowed = round2(totalBorrowed + r.amount);
+        if (!r.settled) pendingPayable = round2(pendingPayable + (r.amount - r.paid_amount));
       }
       if (r.settled) settledCount++;
     }
     return {
       totalLent,
       totalBorrowed,
-      netBalance: pendingReceivable - pendingPayable,
+      netBalance: round2(pendingReceivable - pendingPayable),
       pendingReceivable,
       pendingPayable,
       settlementRate: records.length > 0 ? Math.round((settledCount / records.length) * 100) : 0,
@@ -249,14 +300,13 @@ export function StorageProvider({ children }: { children: React.ReactNode }) {
       months.push({ month: label, lent: 0, borrowed: 0 });
     }
     for (const r of records) {
-      const parts = r.date.split("/");
-      if (parts.length !== 3) continue;
-      const rDate = new Date(Number(parts[2]), Number(parts[1]) - 1, Number(parts[0]));
+      const rDate = parseRecordDate(r.date);
+      if (!rDate) continue;
       const diffMonths = (now.getFullYear() - rDate.getFullYear()) * 12 + (now.getMonth() - rDate.getMonth());
       if (diffMonths >= 0 && diffMonths <= 5) {
         const idx = 5 - diffMonths;
-        if (r.type === "lent") months[idx].lent += r.amount;
-        else months[idx].borrowed += r.amount;
+        if (r.type === "lent") months[idx].lent = round2(months[idx].lent + r.amount);
+        else months[idx].borrowed = round2(months[idx].borrowed + r.amount);
       }
     }
     return months;
@@ -273,8 +323,42 @@ export function StorageProvider({ children }: { children: React.ReactNode }) {
   };
 
   const restoreData = async (newRecords: Record[], newSettings: Partial<AppSettings>) => {
-    await saveRecords(newRecords);
-    await saveSettings(newSettings);
+    if (!Array.isArray(newRecords)) return;
+    const today = todayStr();
+    const sanitized: Record[] = newRecords.filter(Boolean).map((item: any) => {
+      const id = typeof item.id === "string" && item.id ? item.id : genId();
+      const type: "lent" | "borrowed" = item.type === "borrowed" ? "borrowed" : "lent";
+      const name = typeof item.name === "string" && item.name.trim() ? item.name.trim() : "Unknown";
+      const amount = round2(Math.max(0, Number(item.amount) || 0));
+      const payments: Payment[] = Array.isArray(item.payments) ? item.payments.map((p: any) => ({
+        id: typeof p.id === "string" && p.id ? p.id : genId(),
+        amount: round2(Math.max(0, Number(p.amount) || 0)),
+        date: typeof p.date === "string" ? p.date : today,
+        note: typeof p.note === "string" ? p.note : "",
+      })) : [];
+      const paymentsSum = round2(payments.reduce((s, p) => s + p.amount, 0));
+      const paid_amount = round2(Math.max(paymentsSum, Number(item.paid_amount) || 0));
+      const settled = Boolean(item.settled) || (amount > 0 && paid_amount >= amount);
+      return {
+        id,
+        type,
+        name,
+        amount,
+        paid_amount,
+        note: typeof item.note === "string" ? item.note : "",
+        date: typeof item.date === "string" ? item.date : today,
+        due_date: typeof item.due_date === "string" ? item.due_date : "",
+        settled,
+        settled_date: item.settled_date || (settled ? today : ""),
+        payments,
+        created: typeof item.created === "string" ? item.created : new Date().toISOString(),
+        updated: typeof item.updated === "string" ? item.updated : new Date().toISOString(),
+      };
+    });
+    await saveRecords(sanitized);
+    if (newSettings && typeof newSettings === "object") {
+      await saveSettings(newSettings);
+    }
   };
 
   const refresh = loadData;

@@ -1,0 +1,8 @@
+LendLog v1.0.2 Release:
+- Fixed payment deletion bug to accurately recalculate settled state
+- Fixed bulk settlement (settleAllFor) to properly update paid balances
+- Enhanced un-settle action to restore exact partial payment amounts
+- Hardened input validation: prevented negative amounts and overpayments
+- Added decimal precision rounding to prevent floating-point drift
+- Sanitized and normalized backup data import
+- Expanded automated test suite with financial integrity regression tests

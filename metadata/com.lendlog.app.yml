@@ -2,8 +2,8 @@ Categories:
   - Money
 License: MIT
 AuthorName: KAILASH
-SourceCode: https://github.com/mrdevil42023/lendlog
-IssueTracker: https://github.com/mrdevil42023/lendlog/issues
+SourceCode: https://github.com/kaixhdev/lendlog
+IssueTracker: https://github.com/kaixhdev/lendlog/issues
 
 AutoName: LendLog
 Summary: Personal lending and borrowing tracker
@@ -30,7 +30,7 @@ Description: |-
     zero ads, and zero cloud dependencies.
 
 RepoType: git
-Repo: https://github.com/mrdevil42023/lendlog.git
+Repo: https://github.com/kaixhdev/lendlog.git
 
 Builds:
   - versionName: 1.0.1
@@ -54,7 +54,28 @@ Builds:
     scandelete:
       - node_modules/
 
+  - versionName: 1.0.2
+    versionCode: 3
+    commit: v1.0.2
+    subdir: android/app
+    sudo:
+      - apt-get update
+      - apt-get install -y nodejs npm
+    init:
+      - cd ../..
+      - npm ci
+    prebuild:
+      - cd ../..
+      - sed -i -e '/signingConfig /d' android/app/build.gradle
+    gradle:
+      - yes
+    output: build/outputs/apk/release/app-release-unsigned.apk
+    scanignore:
+      - node_modules/react-native/sdks/hermesc/linux64-bin/hermesc
+    scandelete:
+      - node_modules/
+
 AutoUpdateMode: Version
 UpdateCheckMode: Tags
-CurrentVersion: 1.0.1
-CurrentVersionCode: 2
+CurrentVersion: 1.0.2
+CurrentVersionCode: 3

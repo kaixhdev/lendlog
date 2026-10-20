@@ -13,7 +13,11 @@ interface Props {
 }
 
 function fmt(n: number, currency: string) {
-  return `${currency}${Math.abs(n).toLocaleString("en-IN", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
+  const hasDecimals = n % 1 !== 0;
+  return `${currency}${Math.abs(n).toLocaleString("en-IN", {
+    minimumFractionDigits: hasDecimals ? 2 : 0,
+    maximumFractionDigits: 2,
+  })}`;
 }
 
 export function PersonCard({ person, currency, onTap, onLongPress }: Props) {

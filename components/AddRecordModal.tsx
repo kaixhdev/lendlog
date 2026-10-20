@@ -27,7 +27,7 @@ function todayStr(offsetDays = 0) {
 export function AddRecordModal({ visible, onClose, initialType = "lent", editRecord, openPayment }: Props) {
   const c = useColors();
   const insets = useSafeAreaInsets();
-  const { createRecord, updateRecord, addPayment, deletePayment, getPeople, settings } = useStorage();
+  const { createRecord, updateRecord, addPayment, deletePayment, getPeople, settings, records } = useStorage();
   const scrollRef = useRef<ScrollView>(null);
   const saveBtnScale = useRef(new Animated.Value(1)).current;
 
@@ -43,7 +43,8 @@ export function AddRecordModal({ visible, onClose, initialType = "lent", editRec
   const [payNote, setPayNote] = useState("");
   const [payDate, setPayDate] = useState("");
 
-  const isEdit = !!editRecord;
+  const activeRecord = editRecord ? (records.find(r => r.id === editRecord.id) ?? editRecord) : null;
+  const isEdit = !!activeRecord;
   const people = getPeople();
 
   const modalTopPad = Math.max(insets.top, Platform.OS === "android" ? (StatusBar.currentHeight || 28) : 20);
@@ -80,6 +81,13 @@ export function AddRecordModal({ visible, onClose, initialType = "lent", editRec
     if (!name.trim()) { Alert.alert("Name required", "Please enter the person's name."); return; }
     const amt = parseFloat(amount);
     if (!amount || isNaN(amt) || amt <= 0) { Alert.alert("Valid amount required", "Please enter a positive amount."); return; }
+    if (isEdit && activeRecord && amt < activeRecord.paid_amount) {
+      Alert.alert(
+        "Amount too low",
+        `This record already has ${currency}${activeRecord.paid_amount} in recorded payments. The total amount cannot be less than payments already recorded.`
+      );
+      return;
+    }
     
     Animated.sequence([
       Animated.timing(saveBtnScale, { toValue: 0.95, duration: 60, useNativeDriver: true }),
@@ -87,8 +95,8 @@ export function AddRecordModal({ visible, onClose, initialType = "lent", editRec
     ]).start();
 
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    if (isEdit && editRecord) {
-      await updateRecord(editRecord.id, { name: name.trim(), amount: amt, type, note, date: date || todayStr(), due_date: dueDate });
+    if (isEdit && activeRecord) {
+      await updateRecord(activeRecord.id, { name: name.trim(), amount: amt, type, note, date: date || todayStr(), due_date: dueDate });
     } else {
       await createRecord(name.trim(), amt, type, note, date, dueDate);
     }
@@ -96,13 +104,13 @@ export function AddRecordModal({ visible, onClose, initialType = "lent", editRec
   };
 
   const handleAddPayment = async () => {
-    if (!editRecord) return;
+    if (!activeRecord) return;
     const amt = parseFloat(payAmount);
-    const remaining = editRecord.amount - editRecord.paid_amount;
+    const remaining = activeRecord.amount - activeRecord.paid_amount;
     if (!payAmount || isNaN(amt) || amt <= 0) { Alert.alert("Enter valid amount"); return; }
     if (amt > remaining) { Alert.alert("Amount exceeds remaining balance"); return; }
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    await addPayment(editRecord.id, amt, payNote, payDate);
+    await addPayment(activeRecord.id, amt, payNote, payDate);
     setShowPaymentForm(false);
     setPayAmount("");
     setPayNote("");
@@ -272,7 +280,7 @@ export function AddRecordModal({ visible, onClose, initialType = "lent", editRec
               ))}
             </ScrollView>
 
-            {isEdit && editRecord && (
+            {isEdit && activeRecord && (
               <View style={styles.paySection}>
                 <View style={[styles.divider, { backgroundColor: c.border }]} />
                 <Text style={[styles.sectionTitle, { color: c.text, fontFamily: "Inter_700Bold" }]}>Payment History</Text>
@@ -280,42 +288,42 @@ export function AddRecordModal({ visible, onClose, initialType = "lent", editRec
                 <View style={styles.payStats}>
                   <View style={[styles.payStat, { backgroundColor: c.card2, borderColor: c.border }]}>
                     <Text style={[styles.payStatLabel, { color: c.text3, fontFamily: "Inter_400Regular" }]}>Total</Text>
-                    <Text style={[styles.payStatValue, { color: c.text, fontFamily: "Inter_700Bold" }]}>{currency}{editRecord.amount.toLocaleString()}</Text>
+                    <Text style={[styles.payStatValue, { color: c.text, fontFamily: "Inter_700Bold" }]}>{currency}{activeRecord.amount.toLocaleString()}</Text>
                   </View>
                   <View style={[styles.payStat, { backgroundColor: c.card2, borderColor: c.border }]}>
                     <Text style={[styles.payStatLabel, { color: c.text3, fontFamily: "Inter_400Regular" }]}>Paid</Text>
-                    <Text style={[styles.payStatValue, { color: c.primary, fontFamily: "Inter_700Bold" }]}>{currency}{editRecord.paid_amount.toLocaleString()}</Text>
+                    <Text style={[styles.payStatValue, { color: c.primary, fontFamily: "Inter_700Bold" }]}>{currency}{activeRecord.paid_amount.toLocaleString()}</Text>
                   </View>
                   <View style={[styles.payStat, { backgroundColor: c.card2, borderColor: c.border }]}>
                     <Text style={[styles.payStatLabel, { color: c.text3, fontFamily: "Inter_400Regular" }]}>Left</Text>
-                    <Text style={[styles.payStatValue, { color: c.danger, fontFamily: "Inter_700Bold" }]}>{currency}{(editRecord.amount - editRecord.paid_amount).toLocaleString()}</Text>
+                    <Text style={[styles.payStatValue, { color: c.danger, fontFamily: "Inter_700Bold" }]}>{currency}{(activeRecord.amount - activeRecord.paid_amount).toLocaleString()}</Text>
                   </View>
                 </View>
 
-                {editRecord.paid_amount > 0 && (
+                {activeRecord.paid_amount > 0 && (
                   <View style={[styles.progressBar, { backgroundColor: c.border }]}>
-                    <View style={[styles.progressFill, { backgroundColor: c.primary, width: `${Math.min(editRecord.paid_amount / editRecord.amount, 1) * 100}%` }]} />
+                    <View style={[styles.progressFill, { backgroundColor: c.primary, width: `${Math.min(activeRecord.paid_amount / activeRecord.amount, 1) * 100}%` }]} />
                   </View>
                 )}
 
-                {editRecord.payments.map(p => (
+                {activeRecord.payments.map(p => (
                   <View key={p.id} style={[styles.payRow, { backgroundColor: c.card2, borderColor: c.border }]}>
                     <View style={{ flex: 1 }}>
                       <Text style={[styles.payAmt, { color: c.primary, fontFamily: "Inter_600SemiBold" }]}>{currency}{p.amount.toLocaleString()}</Text>
                       <Text style={[styles.payMeta, { color: c.text3, fontFamily: "Inter_400Regular" }]}>{p.date}{p.note ? ` • ${p.note}` : ""}</Text>
                     </View>
-                    <TouchableOpacity onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy); deletePayment(editRecord.id, p.id); }}>
+                    <TouchableOpacity onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy); deletePayment(activeRecord.id, p.id); }}>
                       <Feather name="trash-2" size={16} color={c.danger} />
                     </TouchableOpacity>
                   </View>
                 ))}
 
-                {!editRecord.settled && (
+                {!activeRecord.settled && (
                   showPaymentForm ? (
                     <View style={[styles.payForm, { backgroundColor: c.card, borderColor: c.border }]}>
                       <Text style={[styles.label, { color: c.text2, fontFamily: "Inter_500Medium" }]}>PAYMENT AMOUNT</Text>
                       <TextInput
-                        placeholder={`Max ${currency}${(editRecord.amount - editRecord.paid_amount).toLocaleString()}`}
+                        placeholder={`Max ${currency}${(activeRecord.amount - activeRecord.paid_amount).toLocaleString()}`}
                         placeholderTextColor={c.text3}
                         value={payAmount}
                         onChangeText={setPayAmount}
