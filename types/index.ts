@@ -49,9 +49,10 @@ export interface MonthlyData {
 
 export interface AppSettings {
   currency: string;
-  theme: "dark" | "light";
+  theme: "dark" | "light" | "system";
   profileName: string;
   profilePhoto?: string;
+  hasCompletedOnboarding?: boolean;
 }
 
 export type FilterType = "all" | "lent" | "borrowed" | "pending" | "settled";

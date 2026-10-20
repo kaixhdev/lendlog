@@ -4,6 +4,7 @@ import type { AppSettings, FilterType, MonthlyData, Payment, PersonStats, Record
 
 const RECORDS_KEY = "lendlog_records";
 const SETTINGS_KEY = "lendlog_settings";
+const ONBOARDING_KEY = "lendlog_onboarding_completed";
 
 export function round2(val: number): number {
   return Math.round((val + Number.EPSILON) * 100) / 100;
@@ -54,6 +55,9 @@ interface StorageContextType {
   clearAllRecords: () => Promise<void>;
   restoreData: (records: Record[], settings: Partial<AppSettings>) => Promise<void>;
   refresh: () => Promise<void>;
+  hasCompletedOnboarding: boolean;
+  completeOnboarding: (prefs?: { profileName?: string; currency?: string; theme?: "system" | "dark" | "light" }) => Promise<void>;
+  resetOnboarding: () => Promise<void>;
 }
 
 const StorageContext = createContext<StorageContextType | null>(null);
@@ -65,18 +69,58 @@ export function StorageProvider({ children }: { children: React.ReactNode }) {
     theme: "dark",
     profileName: "Friend",
   });
+  const [hasCompletedOnboarding, setHasCompletedOnboarding] = useState(true);
   const [loading, setLoading] = useState(true);
 
   const loadData = useCallback(async () => {
     try {
-      const [rRaw, sRaw] = await Promise.all([
+      const [rRaw, sRaw, oRaw] = await Promise.all([
         AsyncStorage.getItem(RECORDS_KEY),
         AsyncStorage.getItem(SETTINGS_KEY),
+        AsyncStorage.getItem(ONBOARDING_KEY),
       ]);
-      if (rRaw) setRecords(JSON.parse(rRaw) as Record[]);
-      if (sRaw) setSettings(JSON.parse(sRaw) as AppSettings);
+      let loadedRecords: Record[] = [];
+      let loadedSettings: AppSettings = {
+        currency: "Rs.",
+        theme: "dark",
+        profileName: "Friend",
+      };
+      if (rRaw) {
+        try {
+          loadedRecords = JSON.parse(rRaw) as Record[];
+        } catch {
+          loadedRecords = [];
+        }
+        setRecords(loadedRecords);
+      }
+      if (sRaw) {
+        try {
+          loadedSettings = { ...loadedSettings, ...(JSON.parse(sRaw) as AppSettings) };
+        } catch {
+          // ignore corrupted settings
+        }
+        setSettings(loadedSettings);
+      }
+
+      // Existing user protection & onboarding detection:
+      if (oRaw === "true" || loadedSettings.hasCompletedOnboarding === true) {
+        setHasCompletedOnboarding(true);
+      } else if (oRaw === "false") {
+        setHasCompletedOnboarding(false);
+      } else {
+        // oRaw is null (first run of this update):
+        // If user already has records or existing settings, NEVER force onboarding
+        const isExistingUser = loadedRecords.length > 0 || sRaw !== null;
+        if (isExistingUser) {
+          setHasCompletedOnboarding(true);
+          await AsyncStorage.setItem(ONBOARDING_KEY, "true");
+        } else {
+          // Fresh install
+          setHasCompletedOnboarding(false);
+        }
+      }
     } catch (e) {
-      // ignore
+      // fallback
     } finally {
       setLoading(false);
     }
@@ -357,8 +401,33 @@ export function StorageProvider({ children }: { children: React.ReactNode }) {
     });
     await saveRecords(sanitized);
     if (newSettings && typeof newSettings === "object") {
-      await saveSettings(newSettings);
+      await saveSettings({ ...newSettings, hasCompletedOnboarding: true });
+    } else {
+      await saveSettings({ hasCompletedOnboarding: true });
     }
+    setHasCompletedOnboarding(true);
+    await AsyncStorage.setItem(ONBOARDING_KEY, "true");
+  };
+
+  const completeOnboarding = async (prefs?: { profileName?: string; currency?: string; theme?: "system" | "dark" | "light" }) => {
+    const updated: AppSettings = {
+      ...settings,
+      ...(prefs?.profileName !== undefined && prefs.profileName.trim() ? { profileName: prefs.profileName.trim() } : {}),
+      ...(prefs?.currency !== undefined && prefs.currency.trim() ? { currency: prefs.currency.trim() } : {}),
+      ...(prefs?.theme ? { theme: prefs.theme } : {}),
+      hasCompletedOnboarding: true,
+    };
+    setSettings(updated);
+    setHasCompletedOnboarding(true);
+    await Promise.all([
+      AsyncStorage.setItem(SETTINGS_KEY, JSON.stringify(updated)),
+      AsyncStorage.setItem(ONBOARDING_KEY, "true"),
+    ]);
+  };
+
+  const resetOnboarding = async () => {
+    setHasCompletedOnboarding(false);
+    await AsyncStorage.setItem(ONBOARDING_KEY, "false");
   };
 
   const refresh = loadData;
@@ -366,6 +435,7 @@ export function StorageProvider({ children }: { children: React.ReactNode }) {
   return (
     <StorageContext.Provider value={{
       records, settings, loading,
+      hasCompletedOnboarding, completeOnboarding, resetOnboarding,
       createRecord, updateRecord, deleteRecord,
       markSettled, settleAllFor, deleteAllFor, renamePerson,
       addPayment, deletePayment,

@@ -4,6 +4,7 @@ import { File, Paths } from "expo-file-system";
 import * as Haptics from "expo-haptics";
 import { Image } from "expo-image";
 import * as ImagePicker from "expo-image-picker";
+import { useRouter } from "expo-router";
 import * as Sharing from "expo-sharing";
 import React, { useEffect, useState } from "react";
 import {
@@ -27,6 +28,7 @@ import { useColors } from "@/hooks/useColors";
 export default function ProfileScreen() {
   const c = useColors();
   const insets = useSafeAreaInsets();
+  const router = useRouter();
   const { settings, saveSettings, getSummary, clearAllRecords, getPeople, records, restoreData } = useStorage();
   const { theme, toggleTheme } = useThemeContext();
 
@@ -403,12 +405,34 @@ export default function ProfileScreen() {
           </View>
           <View style={{ flex: 1 }}>
             <Text style={[styles.aboutName, { color: c.text, fontFamily: "Inter_700Bold" }]}>LendLog</Text>
-            <Text style={[styles.aboutVersion, { color: c.text3, fontFamily: "Inter_400Regular" }]}>Version 1.0.2</Text>
+            <Text style={[styles.aboutVersion, { color: c.text3, fontFamily: "Inter_400Regular" }]}>Version 1.0.3</Text>
           </View>
         </View>
         <Text style={[styles.aboutDesc, { color: c.text2, fontFamily: "Inter_400Regular" }]}>
           A personal lending tracker to keep tab of money you lend or borrow from friends and family.
         </Text>
+
+        <TouchableOpacity
+          style={[styles.actionRow, { backgroundColor: c.card2, borderColor: c.border, marginTop: 4 }]}
+          onPress={() => {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+            router.push("/onboarding");
+          }}
+          accessibilityLabel="Re-run Setup Wizard"
+        >
+          <View style={[styles.actionIcon, { backgroundColor: c.primary + "20" }]}>
+            <Feather name="compass" size={18} color={c.primary} />
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text style={[styles.actionLabel, { color: c.text, fontFamily: "Inter_600SemiBold" }]}>
+              Re-run Setup Wizard
+            </Text>
+            <Text style={[styles.actionDesc, { color: c.text3, fontFamily: "Inter_400Regular" }]}>
+              Step-by-step currency, theme, and profile setup
+            </Text>
+          </View>
+          <Feather name="chevron-right" size={16} color={c.text3} />
+        </TouchableOpacity>
       </Section>
     </ScrollView>
   );

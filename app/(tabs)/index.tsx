@@ -30,7 +30,23 @@ export default function HomeScreen() {
   const c = useColors();
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const { records, settings, markSettled, deleteRecord, getFilteredRecords, getSummary, refresh } = useStorage();
+  const {
+    records,
+    settings,
+    loading,
+    hasCompletedOnboarding,
+    markSettled,
+    deleteRecord,
+    getFilteredRecords,
+    getSummary,
+    refresh,
+  } = useStorage();
+
+  React.useEffect(() => {
+    if (!loading && !hasCompletedOnboarding) {
+      router.replace("/onboarding");
+    }
+  }, [loading, hasCompletedOnboarding, router]);
 
   const [showModal, setShowModal] = useState(false);
   const [modalType, setModalType] = useState<"lent" | "borrowed">("lent");
@@ -74,6 +90,10 @@ export default function HomeScreen() {
 
   const netColor = summary.netBalance > 0 ? c.primary : summary.netBalance < 0 ? c.danger : c.text2;
   const netLabel = summary.netBalance > 0 ? "People owe you money" : summary.netBalance < 0 ? "You owe money" : "All settled";
+
+  if (loading || !hasCompletedOnboarding) {
+    return null;
+  }
 
   return (
     <FadeInView style={{ backgroundColor: c.background }}>

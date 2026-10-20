@@ -1,5 +1,6 @@
 import { Feather } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
+import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
   Alert, Platform, ScrollView, StyleSheet, Switch, Text, TextInput,
@@ -13,6 +14,7 @@ import { useColors } from "@/hooks/useColors";
 export default function SettingsScreen() {
   const c = useColors();
   const insets = useSafeAreaInsets();
+  const router = useRouter();
   const { settings, saveSettings, getSummary, clearAllRecords, getPeople } = useStorage();
   const { theme, toggleTheme } = useThemeContext();
 
@@ -136,12 +138,32 @@ export default function SettingsScreen() {
           </View>
           <View style={{ flex: 1 }}>
             <Text style={[styles.aboutName, { color: c.text, fontFamily: "Inter_700Bold" }]}>LendLog</Text>
-            <Text style={[styles.aboutVersion, { color: c.text3, fontFamily: "Inter_400Regular" }]}>Version 1.0.2</Text>
+            <Text style={[styles.aboutVersion, { color: c.text3, fontFamily: "Inter_400Regular" }]}>Version 1.0.3</Text>
           </View>
         </View>
         <Text style={[styles.aboutDesc, { color: c.text2, fontFamily: "Inter_400Regular" }]}>
           A personal lending tracker to keep tab of money you lend or borrow from friends and family.
         </Text>
+
+        <TouchableOpacity
+          style={[styles.dangerBtn, { backgroundColor: c.card2, borderColor: c.border, marginTop: 4 }]}
+          onPress={() => {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+            router.push("/onboarding");
+          }}
+          accessibilityLabel="Re-run Setup Wizard"
+        >
+          <Feather name="compass" size={18} color={c.primary} />
+          <View style={{ flex: 1 }}>
+            <Text style={[styles.dangerLabel, { color: c.text, fontFamily: "Inter_600SemiBold" }]}>
+              Re-run Setup Wizard
+            </Text>
+            <Text style={[styles.dangerDesc, { color: c.text3, fontFamily: "Inter_400Regular" }]}>
+              Step-by-step currency, theme, and profile setup
+            </Text>
+          </View>
+          <Feather name="chevron-right" size={16} color={c.text3} />
+        </TouchableOpacity>
       </Section>
     </ScrollView>
   );
