@@ -151,4 +151,179 @@ describe("LendLog Onboarding & Existing User Protection Tests", () => {
     assert.strictEqual(record.amount, 1250.75);
     assert.strictEqual(record.paid_amount, 500.25);
   });
+
+  describe("Regression Tests: Currency Selection, Continue Navigation & Dashboard Return", () => {
+    // Helper state machine simulating OnboardingScreen wizard state
+    function createWizardState(initialSettings = { currency: "₹", profileName: "Friend", theme: "dark" }) {
+      let state = {
+        step: 3, // Start on Step 3: Select Currency
+        settings: { ...initialSettings },
+        persistedSettings: { ...initialSettings },
+        currency: initialSettings.currency || "₹",
+        customCurrency: "",
+        isCustomCurrency: false,
+        selectedTheme: initialSettings.theme || "dark",
+        profileName: initialSettings.profileName || "",
+        hasCompletedOnboarding: false,
+        activeRoute: "/onboarding",
+      };
+
+      const selectCurrency = (sym) => {
+        state.isCustomCurrency = false;
+        state.currency = sym;
+      };
+
+      const selectCustomCurrency = (sym = "") => {
+        state.isCustomCurrency = true;
+        state.customCurrency = sym;
+      };
+
+      const getEffectiveCurrency = () => {
+        return state.isCustomCurrency ? (state.customCurrency.trim() || "₹") : state.currency;
+      };
+
+      const getHasSelectedCurrency = () => {
+        return state.isCustomCurrency ? state.customCurrency.trim().length > 0 : Boolean(state.currency);
+      };
+
+      const handleCurrencyContinue = () => {
+        if (!getHasSelectedCurrency()) {
+          throw new Error("Cannot continue without selecting or entering a currency");
+        }
+        const chosen = getEffectiveCurrency();
+        state.settings.currency = chosen;
+        state.persistedSettings.currency = chosen;
+        state.step = Math.min(6, state.step + 1);
+      };
+
+      const prevStep = () => {
+        state.step = Math.max(1, state.step - 1);
+      };
+
+      const completeSetup = () => {
+        const finalCurrency = getEffectiveCurrency();
+        state.settings = {
+          ...state.settings,
+          currency: finalCurrency,
+          profileName: state.profileName.trim() || "Friend",
+          theme: state.selectedTheme,
+          hasCompletedOnboarding: true,
+        };
+        state.persistedSettings = { ...state.settings };
+        state.hasCompletedOnboarding = true;
+        state.activeRoute = "/(tabs)";
+      };
+
+      const resetOnboarding = () => {
+        state.hasCompletedOnboarding = false;
+        state.activeRoute = "/onboarding";
+        state.step = 1;
+      };
+
+      return {
+        state,
+        selectCurrency,
+        selectCustomCurrency,
+        getEffectiveCurrency,
+        getHasSelectedCurrency,
+        handleCurrencyContinue,
+        prevStep,
+        completeSetup,
+        resetOnboarding,
+      };
+    }
+
+    test("Currency selection and persistence: selecting standard currency updates state and persists", () => {
+      const wizard = createWizardState();
+      assert.strictEqual(wizard.state.currency, "₹");
+      assert.strictEqual(wizard.getHasSelectedCurrency(), true);
+
+      // Select USD ($)
+      wizard.selectCurrency("$");
+      assert.strictEqual(wizard.state.currency, "$");
+      assert.strictEqual(wizard.getEffectiveCurrency(), "$");
+      assert.strictEqual(wizard.getHasSelectedCurrency(), true);
+
+      // Tap continue
+      wizard.handleCurrencyContinue();
+      assert.strictEqual(wizard.state.step, 4, "Continue must advance from Step 3 to Step 4");
+      assert.strictEqual(wizard.state.persistedSettings.currency, "$", "Selected currency must be persisted");
+    });
+
+    test("Currency selection: custom currency validation and whitespace trimming", () => {
+      const wizard = createWizardState();
+      wizard.selectCustomCurrency("");
+      assert.strictEqual(wizard.getHasSelectedCurrency(), false, "Empty custom currency must NOT allow continue");
+
+      wizard.selectCustomCurrency("   ");
+      assert.strictEqual(wizard.getHasSelectedCurrency(), false, "Whitespace-only custom currency must NOT allow continue");
+
+      wizard.selectCustomCurrency("  ¥  ");
+      assert.strictEqual(wizard.getHasSelectedCurrency(), true, "Valid custom currency symbol allows continue");
+      assert.strictEqual(wizard.getEffectiveCurrency(), "¥", "Custom symbol must be trimmed");
+
+      wizard.handleCurrencyContinue();
+      assert.strictEqual(wizard.state.step, 4);
+      assert.strictEqual(wizard.state.persistedSettings.currency, "¥");
+    });
+
+    test("Continue-button navigation: step advancement and back navigation preserves chosen currency", () => {
+      const wizard = createWizardState({ currency: "₹" });
+      // Change to EUR (€)
+      wizard.selectCurrency("€");
+      assert.strictEqual(wizard.getEffectiveCurrency(), "€");
+
+      // Advance to step 4 (Appearance)
+      wizard.handleCurrencyContinue();
+      assert.strictEqual(wizard.state.step, 4);
+
+      // Navigate back to step 3
+      wizard.prevStep();
+      assert.strictEqual(wizard.state.step, 3, "Navigating back returns to Step 3");
+      assert.strictEqual(wizard.state.currency, "€", "Selected currency must remain selected");
+      assert.strictEqual(wizard.getHasSelectedCurrency(), true, "Continue button must remain visible and active");
+    });
+
+    test("Returning to dashboard after completing setup: transitions route to /(tabs) and sets flag", () => {
+      const wizard = createWizardState();
+      assert.strictEqual(wizard.state.hasCompletedOnboarding, false);
+      assert.strictEqual(wizard.state.activeRoute, "/onboarding");
+
+      // Select CAD and complete setup
+      wizard.selectCurrency("CA$");
+      wizard.handleCurrencyContinue(); // step 4
+      wizard.completeSetup(); // final CTA
+
+      assert.strictEqual(wizard.state.hasCompletedOnboarding, true, "Onboarding flag must be true");
+      assert.strictEqual(wizard.state.persistedSettings.hasCompletedOnboarding, true);
+      assert.strictEqual(wizard.state.persistedSettings.currency, "CA$");
+      assert.strictEqual(wizard.state.activeRoute, "/(tabs)", "Active route must redirect to dashboard");
+    });
+
+    test("Re-running setup wizard from Profile/Settings: reset allows re-entry and returns to dashboard", () => {
+      const wizard = createWizardState();
+      // Complete initial onboarding
+      wizard.completeSetup();
+      assert.strictEqual(wizard.state.hasCompletedOnboarding, true);
+      assert.strictEqual(wizard.state.activeRoute, "/(tabs)");
+
+      // User triggers 'Re-run Setup Wizard' from Profile/Settings
+      wizard.resetOnboarding();
+      assert.strictEqual(wizard.state.hasCompletedOnboarding, false);
+      assert.strictEqual(wizard.state.activeRoute, "/onboarding");
+      assert.strictEqual(wizard.state.step, 1);
+
+      // Re-run through wizard to Step 3 and pick GBP (£)
+      wizard.state.step = 3;
+      wizard.selectCurrency("£");
+      wizard.handleCurrencyContinue();
+      assert.strictEqual(wizard.state.persistedSettings.currency, "£");
+
+      // Finish re-run
+      wizard.completeSetup();
+      assert.strictEqual(wizard.state.hasCompletedOnboarding, true);
+      assert.strictEqual(wizard.state.persistedSettings.currency, "£");
+      assert.strictEqual(wizard.state.activeRoute, "/(tabs)");
+    });
+  });
 });

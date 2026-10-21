@@ -33,7 +33,7 @@ export default function OnboardingScreen() {
   const c = useColors();
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const { settings, completeOnboarding } = useStorage();
+  const { settings, completeOnboarding, saveSettings } = useStorage();
   const { themePreference, setThemePreference } = useThemeContext();
 
   // Wizard state: 1 to 6
@@ -47,6 +47,9 @@ export default function OnboardingScreen() {
   const [selectedTheme, setSelectedTheme] = useState<ThemePreference>(themePreference || "dark");
 
   const effectiveCurrency = isCustomCurrency ? (customCurrency.trim() || "₹") : currency;
+  const hasSelectedCurrency = isCustomCurrency
+    ? customCurrency.trim().length > 0
+    : Boolean(currency);
 
   const nextStep = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -56,6 +59,13 @@ export default function OnboardingScreen() {
   const prevStep = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setStep(prev => Math.max(1, prev - 1));
+  };
+
+  const handleCurrencyContinue = async () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    const chosen = effectiveCurrency.trim() || "₹";
+    await saveSettings({ currency: chosen });
+    nextStep();
   };
 
   const handleSkip = async () => {
@@ -99,7 +109,10 @@ export default function OnboardingScreen() {
   };
 
   const topPadding = insets.top + (Platform.OS === "web" ? 20 : 12);
-  const bottomPadding = insets.bottom + 20;
+  const stickyBottomPadding = Math.max(insets.bottom, 16);
+  const scrollBottomPadding = step === 3
+    ? stickyBottomPadding + 88
+    : insets.bottom + 20;
 
   return (
     <KeyboardAvoidingView
@@ -107,9 +120,10 @@ export default function OnboardingScreen() {
       behavior={Platform.OS === "ios" ? "padding" : undefined}
     >
       <ScrollView
+        style={styles.scrollView}
         contentContainerStyle={[
           styles.scrollContent,
-          { paddingTop: topPadding, paddingBottom: bottomPadding },
+          { paddingTop: topPadding, paddingBottom: scrollBottomPadding },
         ]}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
@@ -356,17 +370,20 @@ export default function OnboardingScreen() {
                     style={[
                       styles.currencyCard,
                       {
-                        backgroundColor: isSelected ? c.primary + "15" : c.card,
+                        backgroundColor: isSelected ? c.primary + "18" : c.card,
                         borderColor: isSelected ? c.primary : c.border,
+                        borderWidth: isSelected ? 2 : 1,
                       },
                     ]}
+                    accessibilityRole="button"
+                    accessibilityState={{ selected: isSelected }}
                   >
                     <View style={[styles.symbolPill, { backgroundColor: isSelected ? c.primary : c.card2 }]}>
                       <Text
                         style={[
                           styles.symbolText,
                           {
-                            color: isSelected ? "#000" : c.text,
+                            color: isSelected ? c.primaryForeground : c.text,
                             fontFamily: "Inter_700Bold",
                           },
                         ]}
@@ -390,7 +407,11 @@ export default function OnboardingScreen() {
                         {item.desc}
                       </Text>
                     </View>
-                    {isSelected && <Feather name="check" size={18} color={c.primary} />}
+                    {isSelected && (
+                      <View style={[styles.checkCircle, { backgroundColor: c.primary }]}>
+                        <Feather name="check" size={14} color={c.primaryForeground} />
+                      </View>
+                    )}
                   </TouchableOpacity>
                 );
               })}
@@ -401,13 +422,16 @@ export default function OnboardingScreen() {
                 style={[
                   styles.currencyCard,
                   {
-                    backgroundColor: isCustomCurrency ? c.primary + "15" : c.card,
+                    backgroundColor: isCustomCurrency ? c.primary + "18" : c.card,
                     borderColor: isCustomCurrency ? c.primary : c.border,
+                    borderWidth: isCustomCurrency ? 2 : 1,
                   },
                 ]}
+                accessibilityRole="button"
+                accessibilityState={{ selected: isCustomCurrency }}
               >
                 <View style={[styles.symbolPill, { backgroundColor: isCustomCurrency ? c.primary : c.card2 }]}>
-                  <Feather name="edit-2" size={16} color={isCustomCurrency ? "#000" : c.text} />
+                  <Feather name="edit-2" size={16} color={isCustomCurrency ? c.primaryForeground : c.text} />
                 </View>
                 <View style={styles.currencyMeta}>
                   <Text
@@ -425,7 +449,11 @@ export default function OnboardingScreen() {
                     Type any symbol (e.g. ¥, ৳, ₩)
                   </Text>
                 </View>
-                {isCustomCurrency && <Feather name="check" size={18} color={c.primary} />}
+                {isCustomCurrency && (
+                  <View style={[styles.checkCircle, { backgroundColor: c.primary }]}>
+                    <Feather name="check" size={14} color={c.primaryForeground} />
+                  </View>
+                )}
               </TouchableOpacity>
 
               {isCustomCurrency && (
@@ -451,18 +479,6 @@ export default function OnboardingScreen() {
                   />
                 </View>
               )}
-            </View>
-
-            <View style={styles.bottomActions}>
-              <TouchableOpacity
-                style={[styles.primaryButton, { backgroundColor: c.primary }]}
-                onPress={nextStep}
-              >
-                <Text style={[styles.primaryButtonText, { color: "#000", fontFamily: "Inter_700Bold" }]}>
-                  Continue
-                </Text>
-                <Feather name="arrow-right" size={20} color="#000" />
-              </TouchableOpacity>
             </View>
           </View>
         )}
@@ -728,12 +744,41 @@ export default function OnboardingScreen() {
           </View>
         )}
       </ScrollView>
+
+      {/* Floating / Sticky bottom action for Step 3: Select Currency */}
+      {step === 3 && hasSelectedCurrency && (
+        <View
+          style={[
+            styles.floatingFooter,
+            {
+              backgroundColor: c.background,
+              borderTopColor: c.border,
+              paddingBottom: stickyBottomPadding,
+            },
+          ]}
+        >
+          <TouchableOpacity
+            style={[styles.primaryButton, { backgroundColor: c.primary }]}
+            onPress={handleCurrencyContinue}
+            activeOpacity={0.8}
+            accessibilityLabel="Continue to appearance setup"
+          >
+            <Text style={[styles.primaryButtonText, { color: c.primaryForeground, fontFamily: "Inter_700Bold" }]}>
+              Continue
+            </Text>
+            <Feather name="arrow-right" size={20} color={c.primaryForeground} />
+          </TouchableOpacity>
+        </View>
+      )}
     </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
+    flex: 1,
+  },
+  scrollView: {
     flex: 1,
   },
   scrollContent: {
@@ -1082,5 +1127,26 @@ const styles = StyleSheet.create({
   },
   textButtonText: {
     fontSize: 14,
+  },
+  checkCircle: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  floatingFooter: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    bottom: 0,
+    paddingHorizontal: 20,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    elevation: 8,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: -3 },
+    shadowOpacity: 0.15,
+    shadowRadius: 6,
   },
 });
