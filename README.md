@@ -12,10 +12,15 @@
 
 <p align="center">
   <a href="https://github.com/kaixhdev/lendlog/releases/latest">
-    <img src="https://img.shields.io/badge/%20Download%20APK-LendLog%20v1.0.2-brightgreen?style=for-the-badge" alt="Download APK"/>
+    <img src="https://img.shields.io/badge/%20Download%20APK-Release-brightgreen?style=for-the-badge" alt="Download APK"/>
   </a>
 </p>
 
+<p align="center">
+  <a href="https://rookieenough.github.io/Orion-Data/redirect.html?id=lendlog">
+    <img src="https://raw.githubusercontent.com/RookieEnough/Orion-Store/refs/heads/main/assets/orion-badge.png" height="58" alt="Get it on Orion Store"/>
+  </a>
+</p>
 </div>
 
 A personal lending tracker for Android — built with Expo & React Native.
