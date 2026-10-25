@@ -16,10 +16,17 @@
   </a>
 </p>
 
+
 <p align="center">
-  <a href="https://rookieenough.github.io/Orion-Data/redirect.html?id=lendlog">
-    <img src="https://raw.githubusercontent.com/RookieEnough/Orion-Store/refs/heads/main/assets/orion-badge.png" height="58" alt="Get it on Orion Store"/>
+  <a href="https://rookieenough.github.io/Orion-Data/redirect.html?id=lendlog&icon=https%3A%2F%2Fraw.githubusercontent.com%2Fkaixhdev%2Flendlog%2Frefs%2Fheads%2Fmain%2Fscreenshots%2Fscreen-logo.png">
+    <img
+      src="https://raw.githubusercontent.com/RookieEnough/Orion-Store/refs/heads/main/assets/orion-badge.png"
+      height="58"
+      alt="Get LendLog on Orion Store"
+    />
   </a>
+</p>
+
 </p>
 </div>
 
