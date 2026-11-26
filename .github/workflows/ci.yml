@@ -30,6 +30,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Run ESLint and Prettier
+        run: npm run lint
+
       - name: Run TypeScript typecheck
         run: npm run typecheck
 
@@ -55,7 +58,6 @@ jobs:
         with:
           distribution: temurin
           java-version: 21
-
 
       - name: Install dependencies
         run: npm ci
