@@ -241,13 +241,34 @@ export function StorageProvider({ children }: { children: React.ReactNode }) {
     const updated = records.map((r) => {
       if (r.id !== id) return r;
       const isSettling = !r.settled;
-      const paymentsSum = round2(
-        r.payments.reduce((sum, p) => sum + p.amount, 0),
+      const existingPayments = isSettling
+        ? r.payments
+        : r.payments.filter((payment) => payment.kind !== 'settlement');
+      const existingPaid = round2(
+        existingPayments.reduce((sum, payment) => sum + payment.amount, 0),
+      );
+      const adjustment = Math.max(0, round2(r.amount - existingPaid));
+      const payments =
+        isSettling && adjustment > 0
+          ? [
+              ...existingPayments,
+              {
+                id: genId(),
+                amount: adjustment,
+                date: today,
+                note: 'Manual settlement adjustment',
+                kind: 'settlement' as const,
+              },
+            ]
+          : existingPayments;
+      const paid_amount = round2(
+        payments.reduce((sum, payment) => sum + payment.amount, 0),
       );
       return {
         ...r,
+        payments,
         settled: isSettling,
-        paid_amount: isSettling ? r.amount : paymentsSum,
+        paid_amount,
         settled_date: isSettling ? today : '',
         updated: now,
       };
@@ -260,17 +281,36 @@ export function StorageProvider({ children }: { children: React.ReactNode }) {
   const settleAllFor = async (name: string) => {
     const today = todayStr();
     const now = new Date().toISOString();
-    const updated = records.map((r) =>
-      r.name.toLowerCase() === name.toLowerCase() && !r.settled
-        ? {
-            ...r,
-            settled: true,
-            paid_amount: r.amount,
-            settled_date: today,
-            updated: now,
-          }
-        : r,
-    );
+    const updated = records.map((r) => {
+      if (r.name.toLowerCase() !== name.toLowerCase() || r.settled) return r;
+      const paidFromPayments = round2(
+        r.payments.reduce((sum, payment) => sum + payment.amount, 0),
+      );
+      const adjustment = Math.max(0, round2(r.amount - paidFromPayments));
+      const payments =
+        adjustment > 0
+          ? [
+              ...r.payments,
+              {
+                id: genId(),
+                amount: adjustment,
+                date: today,
+                note: 'Manual settlement adjustment',
+                kind: 'settlement' as const,
+              },
+            ]
+          : r.payments;
+      return {
+        ...r,
+        payments,
+        settled: true,
+        paid_amount: round2(
+          payments.reduce((sum, payment) => sum + payment.amount, 0),
+        ),
+        settled_date: today,
+        updated: now,
+      };
+    });
     await saveRecords(updated);
   };
 
