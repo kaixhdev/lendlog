@@ -1,6 +1,7 @@
 import { Feather } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { BlurView } from 'expo-blur';
+import { GlassView, isLiquidGlassAvailable } from 'expo-glass-effect';
 import React, { useRef } from 'react';
 import {
   Animated,
@@ -102,6 +103,15 @@ export function CustomTabBar({ state, navigation }: Props) {
   const insets = useSafeAreaInsets();
   const currentName = state.routes[state.index]?.name;
   const bottomPad = Math.max(insets.bottom, 8);
+  const useNativeGlass = Platform.OS === 'ios' && isLiquidGlassAvailable();
+  const tabs = TABS.map((tab) => (
+    <TabItem
+      key={tab.name}
+      tab={tab}
+      isActive={currentName === tab.name}
+      onPress={() => navigation.navigate(tab.name)}
+    />
+  ));
 
   return (
     <View
@@ -110,26 +120,37 @@ export function CustomTabBar({ state, navigation }: Props) {
         { paddingBottom: bottomPad, backgroundColor: 'transparent' },
       ]}
     >
-      <BlurView
-        intensity={Platform.OS === 'web' ? 45 : 72}
-        tint={theme === 'dark' ? 'dark' : 'light'}
-        style={[
-          styles.bar,
-          {
-            backgroundColor: c.nav + 'B8',
-            borderColor: c.border + 'CC',
-          },
-        ]}
-      >
-        {TABS.map((tab) => (
-          <TabItem
-            key={tab.name}
-            tab={tab}
-            isActive={currentName === tab.name}
-            onPress={() => navigation.navigate(tab.name)}
-          />
-        ))}
-      </BlurView>
+      {useNativeGlass ? (
+        <GlassView
+          colorScheme={theme}
+          glassEffectStyle="regular"
+          isInteractive
+          tintColor={c.nav + '40'}
+          style={[
+            styles.bar,
+            {
+              backgroundColor: 'transparent',
+              borderColor: c.border + 'CC',
+            },
+          ]}
+        >
+          {tabs}
+        </GlassView>
+      ) : (
+        <BlurView
+          intensity={Platform.OS === 'web' ? 45 : 72}
+          tint={theme === 'dark' ? 'dark' : 'light'}
+          style={[
+            styles.bar,
+            {
+              backgroundColor: c.nav + 'B8',
+              borderColor: c.border + 'CC',
+            },
+          ]}
+        >
+          {tabs}
+        </BlurView>
+      )}
     </View>
   );
 }
