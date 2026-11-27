@@ -91,7 +91,17 @@ export function BarChart({ data }: Props) {
 }
 
 const styles = StyleSheet.create({
-  container: { borderRadius: 16, borderWidth: 1, padding: 16, gap: 12 },
+  container: {
+    borderRadius: 18,
+    borderWidth: 1,
+    padding: 16,
+    gap: 12,
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.035,
+    shadowRadius: 8,
+    elevation: 1,
+  },
   title: { fontSize: 15 },
   legend: { flexDirection: 'row', gap: 16 },
   legendItem: { flexDirection: 'row', alignItems: 'center', gap: 6 },

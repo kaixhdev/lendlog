@@ -299,9 +299,14 @@ export function RecordCard({
 const styles = StyleSheet.create({
   card: {
     flexDirection: 'row',
-    borderRadius: 12,
+    borderRadius: 18,
     borderWidth: 1,
     marginBottom: 10,
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 9,
+    elevation: 1,
     overflow: 'hidden',
   },
   accent: { width: 4 },
