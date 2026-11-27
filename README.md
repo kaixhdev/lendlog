@@ -16,7 +16,6 @@
   </a>
 </p>
 
-
 <p align="center">
   <a href="https://rookieenough.github.io/Orion-Data/redirect.html?id=lendlog&icon=https%3A%2F%2Fraw.githubusercontent.com%2Fkaixhdev%2Flendlog%2Frefs%2Fheads%2Fmain%2Fscreenshots%2Fscreen-logo.png">
     <img
@@ -183,4 +182,4 @@ This project is licensed under the [MIT License](LICENSE).
 
 ## Developer
 
-# **KAILASH**  · [TELEGRAM](http://t.me/mrdevil12)
+# **KAILASH** · [TELEGRAM](http://t.me/mrdevil12)

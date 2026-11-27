@@ -1,6 +1,6 @@
-import { Feather } from "@expo/vector-icons";
-import { reloadAppAsync } from "expo";
-import React, { useState } from "react";
+import { Feather } from '@expo/vector-icons';
+import { reloadAppAsync } from 'expo';
+import React, { useState } from 'react';
 import {
   Modal,
   Platform,
@@ -9,10 +9,10 @@ import {
   StyleSheet,
   Text,
   View,
-} from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+} from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { useColors } from "@/hooks/useColors";
+import { useColors } from '@/hooks/useColors';
 
 export type ErrorFallbackProps = {
   error: Error;
@@ -29,7 +29,7 @@ export function ErrorFallback({ error, resetError }: ErrorFallbackProps) {
     try {
       await reloadAppAsync();
     } catch (restartError) {
-      console.error("Failed to restart app:", restartError);
+      console.error('Failed to restart app:', restartError);
       resetError();
     }
   };
@@ -43,9 +43,9 @@ export function ErrorFallback({ error, resetError }: ErrorFallbackProps) {
   };
 
   const monoFont = Platform.select({
-    ios: "Menlo",
-    android: "monospace",
-    default: "monospace",
+    ios: 'Menlo',
+    android: 'monospace',
+    default: 'monospace',
   });
 
   return (
@@ -89,10 +89,7 @@ export function ErrorFallback({ error, resetError }: ErrorFallbackProps) {
           ]}
         >
           <Text
-            style={[
-              styles.buttonText,
-              { color: colors.primaryForeground },
-            ]}
+            style={[styles.buttonText, { color: colors.primaryForeground }]}
           >
             Try Again
           </Text>
@@ -174,39 +171,39 @@ export function ErrorFallback({ error, resetError }: ErrorFallbackProps) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    width: "100%",
-    height: "100%",
-    justifyContent: "center",
-    alignItems: "center",
+    width: '100%',
+    height: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
     padding: 24,
   },
   content: {
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: 'center',
+    justifyContent: 'center',
     gap: 16,
-    width: "100%",
+    width: '100%',
     maxWidth: 600,
   },
   title: {
     fontSize: 28,
-    fontWeight: "700",
-    textAlign: "center",
+    fontWeight: '700',
+    textAlign: 'center',
     lineHeight: 40,
   },
   message: {
     fontSize: 16,
-    textAlign: "center",
+    textAlign: 'center',
     lineHeight: 24,
   },
   topButton: {
-    position: "absolute",
+    position: 'absolute',
     right: 16,
     width: 44,
     height: 44,
     borderRadius: 8,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
     zIndex: 10,
   },
   button: {
@@ -214,7 +211,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     paddingHorizontal: 24,
     minWidth: 200,
-    shadowColor: "#000",
+    shadowColor: '#000',
     shadowOffset: {
       width: 0,
       height: 2,
@@ -224,25 +221,25 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   buttonText: {
-    fontWeight: "600",
-    textAlign: "center",
+    fontWeight: '600',
+    textAlign: 'center',
     fontSize: 16,
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
-    justifyContent: "flex-end",
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-end',
   },
   modalContainer: {
-    width: "100%",
-    height: "90%",
+    width: '100%',
+    height: '90%',
     borderTopLeftRadius: 16,
     borderTopRightRadius: 16,
   },
   modalHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     paddingHorizontal: 16,
     paddingTop: 16,
     paddingBottom: 12,
@@ -250,13 +247,13 @@ const styles = StyleSheet.create({
   },
   modalTitle: {
     fontSize: 20,
-    fontWeight: "600",
+    fontWeight: '600',
   },
   closeButton: {
     width: 44,
     height: 44,
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   modalScrollView: {
     flex: 1,
@@ -265,14 +262,14 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   errorContainer: {
-    width: "100%",
+    width: '100%',
     borderRadius: 8,
-    overflow: "hidden",
+    overflow: 'hidden',
     padding: 16,
   },
   errorText: {
     fontSize: 12,
     lineHeight: 18,
-    width: "100%",
+    width: '100%',
   },
 });
