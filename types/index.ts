@@ -7,7 +7,7 @@ export interface Payment {
 
 export interface Record {
   id: string;
-  type: "lent" | "borrowed";
+  type: 'lent' | 'borrowed';
   name: string;
   amount: number;
   paid_amount: number;
@@ -49,11 +49,11 @@ export interface MonthlyData {
 
 export interface AppSettings {
   currency: string;
-  theme: "dark" | "light" | "system";
+  theme: 'dark' | 'light' | 'system';
   profileName: string;
   profilePhoto?: string;
   hasCompletedOnboarding?: boolean;
 }
 
-export type FilterType = "all" | "lent" | "borrowed" | "pending" | "settled";
-export type SortType = "newest" | "oldest" | "highest" | "lowest";
+export type FilterType = 'all' | 'lent' | 'borrowed' | 'pending' | 'settled';
+export type SortType = 'newest' | 'oldest' | 'highest' | 'lowest';

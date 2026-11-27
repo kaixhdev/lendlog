@@ -1,7 +1,7 @@
-import { Feather } from "@expo/vector-icons";
-import * as Haptics from "expo-haptics";
-import { useRouter } from "expo-router";
-import React, { useState } from "react";
+import { Feather } from '@expo/vector-icons';
+import * as Haptics from 'expo-haptics';
+import { useRouter } from 'expo-router';
+import React, { useState } from 'react';
 import {
   KeyboardAvoidingView,
   Platform,
@@ -11,22 +11,22 @@ import {
   TextInput,
   TouchableOpacity,
   View,
-} from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+} from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { useStorage } from "@/context/StorageContext";
-import { ThemePreference, useThemeContext } from "@/context/ThemeContext";
-import { useColors } from "@/hooks/useColors";
+import { useStorage } from '@/context/StorageContext';
+import { ThemePreference, useThemeContext } from '@/context/ThemeContext';
+import { useColors } from '@/hooks/useColors';
 
 const CURRENCY_OPTIONS = [
-  { symbol: "₹", name: "INR - Indian Rupee", desc: "Default for India" },
-  { symbol: "$", name: "USD - US Dollar", desc: "United States" },
-  { symbol: "€", name: "EUR - Euro", desc: "European Union" },
-  { symbol: "£", name: "GBP - British Pound", desc: "United Kingdom" },
-  { symbol: "AED", name: "AED - UAE Dirham", desc: "United Arab Emirates" },
-  { symbol: "CA$", name: "CAD - Canadian Dollar", desc: "Canada" },
-  { symbol: "A$", name: "AUD - Australian Dollar", desc: "Australia" },
-  { symbol: "Rs.", name: "Rs. - Rupee (Classic)", desc: "Classic notation" },
+  { symbol: '₹', name: 'INR - Indian Rupee', desc: 'Default for India' },
+  { symbol: '$', name: 'USD - US Dollar', desc: 'United States' },
+  { symbol: '€', name: 'EUR - Euro', desc: 'European Union' },
+  { symbol: '£', name: 'GBP - British Pound', desc: 'United Kingdom' },
+  { symbol: 'AED', name: 'AED - UAE Dirham', desc: 'United Arab Emirates' },
+  { symbol: 'CA$', name: 'CAD - Canadian Dollar', desc: 'Canada' },
+  { symbol: 'A$', name: 'AUD - Australian Dollar', desc: 'Australia' },
+  { symbol: 'Rs.', name: 'Rs. - Rupee (Classic)', desc: 'Classic notation' },
 ];
 
 export default function OnboardingScreen() {
@@ -38,32 +38,40 @@ export default function OnboardingScreen() {
 
   // Wizard state: 1 to 6
   const [step, setStep] = useState(1);
-  const [profileName, setProfileName] = useState(settings.profileName && settings.profileName !== "Friend" ? settings.profileName : "");
-  const [currency, setCurrency] = useState(settings.currency || "₹");
-  const [customCurrency, setCustomCurrency] = useState("");
-  const [isCustomCurrency, setIsCustomCurrency] = useState(
-    !CURRENCY_OPTIONS.some(o => o.symbol === (settings.currency || "₹"))
+  const [profileName, setProfileName] = useState(
+    settings.profileName && settings.profileName !== 'Friend'
+      ? settings.profileName
+      : '',
   );
-  const [selectedTheme, setSelectedTheme] = useState<ThemePreference>(themePreference || "dark");
+  const [currency, setCurrency] = useState(settings.currency || '₹');
+  const [customCurrency, setCustomCurrency] = useState('');
+  const [isCustomCurrency, setIsCustomCurrency] = useState(
+    !CURRENCY_OPTIONS.some((o) => o.symbol === (settings.currency || '₹')),
+  );
+  const [selectedTheme, setSelectedTheme] = useState<ThemePreference>(
+    themePreference || 'dark',
+  );
 
-  const effectiveCurrency = isCustomCurrency ? (customCurrency.trim() || "₹") : currency;
+  const effectiveCurrency = isCustomCurrency
+    ? customCurrency.trim() || '₹'
+    : currency;
   const hasSelectedCurrency = isCustomCurrency
     ? customCurrency.trim().length > 0
     : Boolean(currency);
 
   const nextStep = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    setStep(prev => Math.min(6, prev + 1));
+    setStep((prev) => Math.min(6, prev + 1));
   };
 
   const prevStep = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    setStep(prev => Math.max(1, prev - 1));
+    setStep((prev) => Math.max(1, prev - 1));
   };
 
   const handleCurrencyContinue = async () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    const chosen = effectiveCurrency.trim() || "₹";
+    const chosen = effectiveCurrency.trim() || '₹';
     await saveSettings({ currency: chosen });
     nextStep();
   };
@@ -71,21 +79,21 @@ export default function OnboardingScreen() {
   const handleSkip = async () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     await completeOnboarding({
-      profileName: profileName.trim() || "Friend",
+      profileName: profileName.trim() || 'Friend',
       currency: effectiveCurrency,
       theme: selectedTheme,
     });
-    router.replace("/(tabs)");
+    router.replace('/(tabs)');
   };
 
   const handleFinish = async () => {
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     await completeOnboarding({
-      profileName: profileName.trim() || "Friend",
+      profileName: profileName.trim() || 'Friend',
       currency: effectiveCurrency,
       theme: selectedTheme,
     });
-    router.replace("/(tabs)");
+    router.replace('/(tabs)');
   };
 
   const handleSelectTheme = async (mode: ThemePreference) => {
@@ -108,16 +116,15 @@ export default function OnboardingScreen() {
     }
   };
 
-  const topPadding = insets.top + (Platform.OS === "web" ? 20 : 12);
+  const topPadding = insets.top + (Platform.OS === 'web' ? 20 : 12);
   const stickyBottomPadding = Math.max(insets.bottom, 16);
-  const scrollBottomPadding = step === 3
-    ? stickyBottomPadding + 88
-    : insets.bottom + 20;
+  const scrollBottomPadding =
+    step === 3 ? stickyBottomPadding + 88 : insets.bottom + 20;
 
   return (
     <KeyboardAvoidingView
       style={[styles.container, { backgroundColor: c.background }]}
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       <ScrollView
         style={styles.scrollView}
@@ -133,16 +140,26 @@ export default function OnboardingScreen() {
           <View style={styles.headerRow}>
             <TouchableOpacity
               onPress={prevStep}
-              style={[styles.backBtn, { borderColor: c.border, backgroundColor: c.card }]}
+              style={[
+                styles.backBtn,
+                { borderColor: c.border, backgroundColor: c.card },
+              ]}
               accessibilityLabel="Back to previous step"
             >
               <Feather name="arrow-left" size={18} color={c.text} />
             </TouchableOpacity>
             <View style={styles.progressContainer}>
-              <Text style={[styles.progressText, { color: c.text3, fontFamily: "Inter_600SemiBold" }]}>
-                {step === 6 ? "SUMMARY" : `STEP ${step - 1} OF 5`}
+              <Text
+                style={[
+                  styles.progressText,
+                  { color: c.text3, fontFamily: 'Inter_600SemiBold' },
+                ]}
+              >
+                {step === 6 ? 'SUMMARY' : `STEP ${step - 1} OF 5`}
               </Text>
-              <View style={[styles.progressBarTrack, { backgroundColor: c.border }]}>
+              <View
+                style={[styles.progressBarTrack, { backgroundColor: c.border }]}
+              >
                 <View
                   style={[
                     styles.progressBarFill,
@@ -155,7 +172,12 @@ export default function OnboardingScreen() {
               </View>
             </View>
             <TouchableOpacity onPress={handleSkip} style={styles.skipBtn}>
-              <Text style={[styles.skipBtnText, { color: c.text3, fontFamily: "Inter_500Medium" }]}>
+              <Text
+                style={[
+                  styles.skipBtnText,
+                  { color: c.text3, fontFamily: 'Inter_500Medium' },
+                ]}
+              >
                 Skip
               </Text>
             </TouchableOpacity>
@@ -166,56 +188,135 @@ export default function OnboardingScreen() {
         {step === 1 && (
           <View style={styles.stepContent}>
             <View style={styles.welcomeHero}>
-              <View style={[styles.logoBadge, { backgroundColor: c.primary + "18" }]}>
+              <View
+                style={[
+                  styles.logoBadge,
+                  { backgroundColor: c.primary + '18' },
+                ]}
+              >
                 <Feather name="book-open" size={44} color={c.primary} />
               </View>
-              <Text style={[styles.title, { color: c.text, fontFamily: "Inter_700Bold" }]}>
+              <Text
+                style={[
+                  styles.title,
+                  { color: c.text, fontFamily: 'Inter_700Bold' },
+                ]}
+              >
                 Welcome to LendLog
               </Text>
-              <Text style={[styles.subtitle, { color: c.text2, fontFamily: "Inter_400Regular" }]}>
-                A private, offline-first personal lending tracker for your friends, family, and colleagues.
+              <Text
+                style={[
+                  styles.subtitle,
+                  { color: c.text2, fontFamily: 'Inter_400Regular' },
+                ]}
+              >
+                A private, offline-first personal lending tracker for your
+                friends, family, and colleagues.
               </Text>
             </View>
 
             <View style={styles.featureList}>
-              <View style={[styles.featureCard, { backgroundColor: c.card, borderColor: c.border }]}>
-                <View style={[styles.featureIcon, { backgroundColor: c.primary + "20" }]}>
+              <View
+                style={[
+                  styles.featureCard,
+                  { backgroundColor: c.card, borderColor: c.border },
+                ]}
+              >
+                <View
+                  style={[
+                    styles.featureIcon,
+                    { backgroundColor: c.primary + '20' },
+                  ]}
+                >
                   <Feather name="trending-up" size={20} color={c.primary} />
                 </View>
                 <View style={styles.featureTextCol}>
-                  <Text style={[styles.featureTitle, { color: c.text, fontFamily: "Inter_600SemiBold" }]}>
+                  <Text
+                    style={[
+                      styles.featureTitle,
+                      { color: c.text, fontFamily: 'Inter_600SemiBold' },
+                    ]}
+                  >
                     Track Lent & Borrowed
                   </Text>
-                  <Text style={[styles.featureDesc, { color: c.text3, fontFamily: "Inter_400Regular" }]}>
-                    Keep precise tabs on who owes you and who you owe with zero hassle.
+                  <Text
+                    style={[
+                      styles.featureDesc,
+                      { color: c.text3, fontFamily: 'Inter_400Regular' },
+                    ]}
+                  >
+                    Keep precise tabs on who owes you and who you owe with zero
+                    hassle.
                   </Text>
                 </View>
               </View>
 
-              <View style={[styles.featureCard, { backgroundColor: c.card, borderColor: c.border }]}>
-                <View style={[styles.featureIcon, { backgroundColor: c.blue + "20" }]}>
+              <View
+                style={[
+                  styles.featureCard,
+                  { backgroundColor: c.card, borderColor: c.border },
+                ]}
+              >
+                <View
+                  style={[
+                    styles.featureIcon,
+                    { backgroundColor: c.blue + '20' },
+                  ]}
+                >
                   <Feather name="clock" size={20} color={c.blue} />
                 </View>
                 <View style={styles.featureTextCol}>
-                  <Text style={[styles.featureTitle, { color: c.text, fontFamily: "Inter_600SemiBold" }]}>
+                  <Text
+                    style={[
+                      styles.featureTitle,
+                      { color: c.text, fontFamily: 'Inter_600SemiBold' },
+                    ]}
+                  >
                     Partial Payments & History
                   </Text>
-                  <Text style={[styles.featureDesc, { color: c.text3, fontFamily: "Inter_400Regular" }]}>
-                    Log repayments in installments with automatic live balance updates.
+                  <Text
+                    style={[
+                      styles.featureDesc,
+                      { color: c.text3, fontFamily: 'Inter_400Regular' },
+                    ]}
+                  >
+                    Log repayments in installments with automatic live balance
+                    updates.
                   </Text>
                 </View>
               </View>
 
-              <View style={[styles.featureCard, { backgroundColor: c.card, borderColor: c.border }]}>
-                <View style={[styles.featureIcon, { backgroundColor: c.orange + "20" }]}>
+              <View
+                style={[
+                  styles.featureCard,
+                  { backgroundColor: c.card, borderColor: c.border },
+                ]}
+              >
+                <View
+                  style={[
+                    styles.featureIcon,
+                    { backgroundColor: c.orange + '20' },
+                  ]}
+                >
                   <Feather name="shield" size={20} color={c.orange} />
                 </View>
                 <View style={styles.featureTextCol}>
-                  <Text style={[styles.featureTitle, { color: c.text, fontFamily: "Inter_600SemiBold" }]}>
+                  <Text
+                    style={[
+                      styles.featureTitle,
+                      { color: c.text, fontFamily: 'Inter_600SemiBold' },
+                    ]}
+                  >
                     100% Private & Offline
                   </Text>
-                  <Text style={[styles.featureDesc, { color: c.text3, fontFamily: "Inter_400Regular" }]}>
-                    Your financial data never leaves your device. No cloud, no ads, no trackers.
+                  <Text
+                    style={[
+                      styles.featureDesc,
+                      { color: c.text3, fontFamily: 'Inter_400Regular' },
+                    ]}
+                  >
+                    Your financial data never leaves your device. No cloud, no
+                    ads, no trackers.
                   </Text>
                 </View>
               </View>
@@ -227,7 +328,12 @@ export default function OnboardingScreen() {
                 onPress={nextStep}
                 accessibilityLabel="Get Started with setup"
               >
-                <Text style={[styles.primaryButtonText, { color: "#000", fontFamily: "Inter_700Bold" }]}>
+                <Text
+                  style={[
+                    styles.primaryButtonText,
+                    { color: '#000', fontFamily: 'Inter_700Bold' },
+                  ]}
+                >
                   Get Started
                 </Text>
                 <Feather name="arrow-right" size={20} color="#000" />
@@ -238,7 +344,12 @@ export default function OnboardingScreen() {
                 onPress={handleSkip}
                 accessibilityLabel="Skip setup and use defaults"
               >
-                <Text style={[styles.textButtonText, { color: c.text3, fontFamily: "Inter_500Medium" }]}>
+                <Text
+                  style={[
+                    styles.textButtonText,
+                    { color: c.text3, fontFamily: 'Inter_500Medium' },
+                  ]}
+                >
                   Skip Setup (Use Defaults)
                 </Text>
               </TouchableOpacity>
@@ -250,19 +361,40 @@ export default function OnboardingScreen() {
         {step === 2 && (
           <View style={styles.stepContent}>
             <View style={styles.stepHeader}>
-              <View style={[styles.stepIconWrap, { backgroundColor: c.primary + "18" }]}>
+              <View
+                style={[
+                  styles.stepIconWrap,
+                  { backgroundColor: c.primary + '18' },
+                ]}
+              >
                 <Feather name="user" size={28} color={c.primary} />
               </View>
-              <Text style={[styles.title, { color: c.text, fontFamily: "Inter_700Bold" }]}>
+              <Text
+                style={[
+                  styles.title,
+                  { color: c.text, fontFamily: 'Inter_700Bold' },
+                ]}
+              >
                 Personalize Your Profile
               </Text>
-              <Text style={[styles.subtitle, { color: c.text2, fontFamily: "Inter_400Regular" }]}>
-                What should we call you? Your name appears in dashboard greetings and exported statements.
+              <Text
+                style={[
+                  styles.subtitle,
+                  { color: c.text2, fontFamily: 'Inter_400Regular' },
+                ]}
+              >
+                What should we call you? Your name appears in dashboard
+                greetings and exported statements.
               </Text>
             </View>
 
             <View style={styles.formGroup}>
-              <Text style={[styles.inputLabel, { color: c.text3, fontFamily: "Inter_600SemiBold" }]}>
+              <Text
+                style={[
+                  styles.inputLabel,
+                  { color: c.text3, fontFamily: 'Inter_600SemiBold' },
+                ]}
+              >
                 YOUR DISPLAY NAME (OPTIONAL)
               </Text>
               <TextInput
@@ -276,7 +408,7 @@ export default function OnboardingScreen() {
                     color: c.text,
                     backgroundColor: c.card,
                     borderColor: c.border,
-                    fontFamily: "Inter_500Medium",
+                    fontFamily: 'Inter_500Medium',
                   },
                 ]}
                 maxLength={30}
@@ -286,10 +418,21 @@ export default function OnboardingScreen() {
               />
             </View>
 
-            <View style={[styles.calloutCard, { backgroundColor: c.card2, borderColor: c.border }]}>
+            <View
+              style={[
+                styles.calloutCard,
+                { backgroundColor: c.card2, borderColor: c.border },
+              ]}
+            >
               <Feather name="lock" size={18} color={c.primary} />
-              <Text style={[styles.calloutText, { color: c.text2, fontFamily: "Inter_400Regular" }]}>
-                Your name is stored locally on this phone only. You can skip this or change it at any time in Profile & Settings.
+              <Text
+                style={[
+                  styles.calloutText,
+                  { color: c.text2, fontFamily: 'Inter_400Regular' },
+                ]}
+              >
+                Your name is stored locally on this phone only. You can skip
+                this or change it at any time in Profile & Settings.
               </Text>
             </View>
 
@@ -298,13 +441,23 @@ export default function OnboardingScreen() {
                 style={[styles.primaryButton, { backgroundColor: c.primary }]}
                 onPress={nextStep}
               >
-                <Text style={[styles.primaryButtonText, { color: "#000", fontFamily: "Inter_700Bold" }]}>
+                <Text
+                  style={[
+                    styles.primaryButtonText,
+                    { color: '#000', fontFamily: 'Inter_700Bold' },
+                  ]}
+                >
                   Continue
                 </Text>
                 <Feather name="arrow-right" size={20} color="#000" />
               </TouchableOpacity>
               <TouchableOpacity style={styles.textButton} onPress={nextStep}>
-                <Text style={[styles.textButtonText, { color: c.text3, fontFamily: "Inter_500Medium" }]}>
+                <Text
+                  style={[
+                    styles.textButtonText,
+                    { color: c.text3, fontFamily: 'Inter_500Medium' },
+                  ]}
+                >
                   Continue without name
                 </Text>
               </TouchableOpacity>
@@ -316,53 +469,123 @@ export default function OnboardingScreen() {
         {step === 3 && (
           <View style={styles.stepContent}>
             <View style={styles.stepHeader}>
-              <View style={[styles.stepIconWrap, { backgroundColor: c.primary + "18" }]}>
+              <View
+                style={[
+                  styles.stepIconWrap,
+                  { backgroundColor: c.primary + '18' },
+                ]}
+              >
                 <Feather name="dollar-sign" size={28} color={c.primary} />
               </View>
-              <Text style={[styles.title, { color: c.text, fontFamily: "Inter_700Bold" }]}>
+              <Text
+                style={[
+                  styles.title,
+                  { color: c.text, fontFamily: 'Inter_700Bold' },
+                ]}
+              >
                 Select Currency
               </Text>
-              <Text style={[styles.subtitle, { color: c.text2, fontFamily: "Inter_400Regular" }]}>
-                Choose your preferred currency symbol. Default is INR (₹) for Indian users.
+              <Text
+                style={[
+                  styles.subtitle,
+                  { color: c.text2, fontFamily: 'Inter_400Regular' },
+                ]}
+              >
+                Choose your preferred currency symbol. Default is INR (₹) for
+                Indian users.
               </Text>
             </View>
 
             {/* Live Sample Preview */}
-            <View style={[styles.previewCard, { backgroundColor: c.card, borderColor: c.border }]}>
-              <Text style={[styles.previewHeading, { color: c.text3, fontFamily: "Inter_600SemiBold" }]}>
+            <View
+              style={[
+                styles.previewCard,
+                { backgroundColor: c.card, borderColor: c.border },
+              ]}
+            >
+              <Text
+                style={[
+                  styles.previewHeading,
+                  { color: c.text3, fontFamily: 'Inter_600SemiBold' },
+                ]}
+              >
                 LIVE BALANCE PREVIEW
               </Text>
               <View style={styles.previewRow}>
                 <View style={styles.previewItem}>
-                  <Text style={[styles.previewLabel, { color: c.text3, fontFamily: "Inter_400Regular" }]}>Total Lent</Text>
-                  <Text style={[styles.previewVal, { color: c.primary, fontFamily: "Inter_700Bold" }]}>
+                  <Text
+                    style={[
+                      styles.previewLabel,
+                      { color: c.text3, fontFamily: 'Inter_400Regular' },
+                    ]}
+                  >
+                    Total Lent
+                  </Text>
+                  <Text
+                    style={[
+                      styles.previewVal,
+                      { color: c.primary, fontFamily: 'Inter_700Bold' },
+                    ]}
+                  >
                     {effectiveCurrency} 2,500.00
                   </Text>
                 </View>
                 <View style={styles.previewDivider} />
                 <View style={styles.previewItem}>
-                  <Text style={[styles.previewLabel, { color: c.text3, fontFamily: "Inter_400Regular" }]}>Repaid</Text>
-                  <Text style={[styles.previewVal, { color: c.blue, fontFamily: "Inter_700Bold" }]}>
+                  <Text
+                    style={[
+                      styles.previewLabel,
+                      { color: c.text3, fontFamily: 'Inter_400Regular' },
+                    ]}
+                  >
+                    Repaid
+                  </Text>
+                  <Text
+                    style={[
+                      styles.previewVal,
+                      { color: c.blue, fontFamily: 'Inter_700Bold' },
+                    ]}
+                  >
                     {effectiveCurrency} 1,000.00
                   </Text>
                 </View>
                 <View style={styles.previewDivider} />
                 <View style={styles.previewItem}>
-                  <Text style={[styles.previewLabel, { color: c.text3, fontFamily: "Inter_400Regular" }]}>Pending</Text>
-                  <Text style={[styles.previewVal, { color: c.orange, fontFamily: "Inter_700Bold" }]}>
+                  <Text
+                    style={[
+                      styles.previewLabel,
+                      { color: c.text3, fontFamily: 'Inter_400Regular' },
+                    ]}
+                  >
+                    Pending
+                  </Text>
+                  <Text
+                    style={[
+                      styles.previewVal,
+                      { color: c.orange, fontFamily: 'Inter_700Bold' },
+                    ]}
+                  >
                     {effectiveCurrency} 1,500.00
                   </Text>
                 </View>
               </View>
-              <Text style={[styles.previewNote, { color: c.text3, fontFamily: "Inter_400Regular" }]}>
-                Amounts maintain 2 decimal places. Currency selection adjusts the display symbol without altering existing transaction numbers.
+              <Text
+                style={[
+                  styles.previewNote,
+                  { color: c.text3, fontFamily: 'Inter_400Regular' },
+                ]}
+              >
+                Amounts maintain 2 decimal places. Currency selection adjusts
+                the display symbol without altering existing transaction
+                numbers.
               </Text>
             </View>
 
             {/* Currency Options Grid */}
             <View style={styles.currencyGrid}>
               {CURRENCY_OPTIONS.map((item) => {
-                const isSelected = !isCustomCurrency && currency === item.symbol;
+                const isSelected =
+                  !isCustomCurrency && currency === item.symbol;
                 return (
                   <TouchableOpacity
                     key={item.symbol}
@@ -370,7 +593,7 @@ export default function OnboardingScreen() {
                     style={[
                       styles.currencyCard,
                       {
-                        backgroundColor: isSelected ? c.primary + "18" : c.card,
+                        backgroundColor: isSelected ? c.primary + '18' : c.card,
                         borderColor: isSelected ? c.primary : c.border,
                         borderWidth: isSelected ? 2 : 1,
                       },
@@ -378,13 +601,18 @@ export default function OnboardingScreen() {
                     accessibilityRole="button"
                     accessibilityState={{ selected: isSelected }}
                   >
-                    <View style={[styles.symbolPill, { backgroundColor: isSelected ? c.primary : c.card2 }]}>
+                    <View
+                      style={[
+                        styles.symbolPill,
+                        { backgroundColor: isSelected ? c.primary : c.card2 },
+                      ]}
+                    >
                       <Text
                         style={[
                           styles.symbolText,
                           {
                             color: isSelected ? c.primaryForeground : c.text,
-                            fontFamily: "Inter_700Bold",
+                            fontFamily: 'Inter_700Bold',
                           },
                         ]}
                       >
@@ -397,19 +625,33 @@ export default function OnboardingScreen() {
                           styles.currencyName,
                           {
                             color: isSelected ? c.primary : c.text,
-                            fontFamily: "Inter_600SemiBold",
+                            fontFamily: 'Inter_600SemiBold',
                           },
                         ]}
                       >
                         {item.name}
                       </Text>
-                      <Text style={[styles.currencyDesc, { color: c.text3, fontFamily: "Inter_400Regular" }]}>
+                      <Text
+                        style={[
+                          styles.currencyDesc,
+                          { color: c.text3, fontFamily: 'Inter_400Regular' },
+                        ]}
+                      >
                         {item.desc}
                       </Text>
                     </View>
                     {isSelected && (
-                      <View style={[styles.checkCircle, { backgroundColor: c.primary }]}>
-                        <Feather name="check" size={14} color={c.primaryForeground} />
+                      <View
+                        style={[
+                          styles.checkCircle,
+                          { backgroundColor: c.primary },
+                        ]}
+                      >
+                        <Feather
+                          name="check"
+                          size={14}
+                          color={c.primaryForeground}
+                        />
                       </View>
                     )}
                   </TouchableOpacity>
@@ -422,7 +664,9 @@ export default function OnboardingScreen() {
                 style={[
                   styles.currencyCard,
                   {
-                    backgroundColor: isCustomCurrency ? c.primary + "18" : c.card,
+                    backgroundColor: isCustomCurrency
+                      ? c.primary + '18'
+                      : c.card,
                     borderColor: isCustomCurrency ? c.primary : c.border,
                     borderWidth: isCustomCurrency ? 2 : 1,
                   },
@@ -430,8 +674,17 @@ export default function OnboardingScreen() {
                 accessibilityRole="button"
                 accessibilityState={{ selected: isCustomCurrency }}
               >
-                <View style={[styles.symbolPill, { backgroundColor: isCustomCurrency ? c.primary : c.card2 }]}>
-                  <Feather name="edit-2" size={16} color={isCustomCurrency ? c.primaryForeground : c.text} />
+                <View
+                  style={[
+                    styles.symbolPill,
+                    { backgroundColor: isCustomCurrency ? c.primary : c.card2 },
+                  ]}
+                >
+                  <Feather
+                    name="edit-2"
+                    size={16}
+                    color={isCustomCurrency ? c.primaryForeground : c.text}
+                  />
                 </View>
                 <View style={styles.currencyMeta}>
                   <Text
@@ -439,26 +692,47 @@ export default function OnboardingScreen() {
                       styles.currencyName,
                       {
                         color: isCustomCurrency ? c.primary : c.text,
-                        fontFamily: "Inter_600SemiBold",
+                        fontFamily: 'Inter_600SemiBold',
                       },
                     ]}
                   >
                     Custom Symbol
                   </Text>
-                  <Text style={[styles.currencyDesc, { color: c.text3, fontFamily: "Inter_400Regular" }]}>
+                  <Text
+                    style={[
+                      styles.currencyDesc,
+                      { color: c.text3, fontFamily: 'Inter_400Regular' },
+                    ]}
+                  >
                     Type any symbol (e.g. ¥, ৳, ₩)
                   </Text>
                 </View>
                 {isCustomCurrency && (
-                  <View style={[styles.checkCircle, { backgroundColor: c.primary }]}>
-                    <Feather name="check" size={14} color={c.primaryForeground} />
+                  <View
+                    style={[styles.checkCircle, { backgroundColor: c.primary }]}
+                  >
+                    <Feather
+                      name="check"
+                      size={14}
+                      color={c.primaryForeground}
+                    />
                   </View>
                 )}
               </TouchableOpacity>
 
               {isCustomCurrency && (
-                <View style={[styles.customInputWrap, { backgroundColor: c.card2, borderColor: c.border }]}>
-                  <Text style={[styles.inputLabel, { color: c.text3, fontFamily: "Inter_600SemiBold" }]}>
+                <View
+                  style={[
+                    styles.customInputWrap,
+                    { backgroundColor: c.card2, borderColor: c.border },
+                  ]}
+                >
+                  <Text
+                    style={[
+                      styles.inputLabel,
+                      { color: c.text3, fontFamily: 'Inter_600SemiBold' },
+                    ]}
+                  >
                     ENTER CUSTOM SYMBOL (MAX 5 CHARS)
                   </Text>
                   <TextInput
@@ -473,7 +747,7 @@ export default function OnboardingScreen() {
                         color: c.text,
                         backgroundColor: c.card,
                         borderColor: c.border,
-                        fontFamily: "Inter_600SemiBold",
+                        fontFamily: 'Inter_600SemiBold',
                       },
                     ]}
                   />
@@ -487,13 +761,28 @@ export default function OnboardingScreen() {
         {step === 4 && (
           <View style={styles.stepContent}>
             <View style={styles.stepHeader}>
-              <View style={[styles.stepIconWrap, { backgroundColor: c.primary + "18" }]}>
+              <View
+                style={[
+                  styles.stepIconWrap,
+                  { backgroundColor: c.primary + '18' },
+                ]}
+              >
                 <Feather name="moon" size={28} color={c.primary} />
               </View>
-              <Text style={[styles.title, { color: c.text, fontFamily: "Inter_700Bold" }]}>
+              <Text
+                style={[
+                  styles.title,
+                  { color: c.text, fontFamily: 'Inter_700Bold' },
+                ]}
+              >
                 Choose Appearance
               </Text>
-              <Text style={[styles.subtitle, { color: c.text2, fontFamily: "Inter_400Regular" }]}>
+              <Text
+                style={[
+                  styles.subtitle,
+                  { color: c.text2, fontFamily: 'Inter_400Regular' },
+                ]}
+              >
                 Pick how LendLog looks. Your choice takes effect immediately.
               </Text>
             </View>
@@ -501,23 +790,23 @@ export default function OnboardingScreen() {
             <View style={styles.themeOptions}>
               {[
                 {
-                  id: "dark" as ThemePreference,
-                  icon: "moon",
-                  label: "Dark Mode",
-                  badge: "Recommended",
-                  desc: "Sleek OLED true-black, easy on the eyes and saves battery.",
+                  id: 'dark' as ThemePreference,
+                  icon: 'moon',
+                  label: 'Dark Mode',
+                  badge: 'Recommended',
+                  desc: 'Sleek OLED true-black, easy on the eyes and saves battery.',
                 },
                 {
-                  id: "light" as ThemePreference,
-                  icon: "sun",
-                  label: "Light Mode",
-                  desc: "Clean, high-contrast crisp theme for bright daylight.",
+                  id: 'light' as ThemePreference,
+                  icon: 'sun',
+                  label: 'Light Mode',
+                  desc: 'Clean, high-contrast crisp theme for bright daylight.',
                 },
                 {
-                  id: "system" as ThemePreference,
-                  icon: "smartphone",
-                  label: "System Default",
-                  desc: "Automatically follows your Android system display settings.",
+                  id: 'system' as ThemePreference,
+                  icon: 'smartphone',
+                  label: 'System Default',
+                  desc: 'Automatically follows your Android system display settings.',
                 },
               ].map((item) => {
                 const isSelected = selectedTheme === item.id;
@@ -528,13 +817,22 @@ export default function OnboardingScreen() {
                     style={[
                       styles.themeCard,
                       {
-                        backgroundColor: isSelected ? c.primary + "15" : c.card,
+                        backgroundColor: isSelected ? c.primary + '15' : c.card,
                         borderColor: isSelected ? c.primary : c.border,
                       },
                     ]}
                   >
-                    <View style={[styles.themeIconBox, { backgroundColor: isSelected ? c.primary : c.card2 }]}>
-                      <Feather name={item.icon as any} size={22} color={isSelected ? "#000" : c.text} />
+                    <View
+                      style={[
+                        styles.themeIconBox,
+                        { backgroundColor: isSelected ? c.primary : c.card2 },
+                      ]}
+                    >
+                      <Feather
+                        name={item.icon as any}
+                        size={22}
+                        color={isSelected ? '#000' : c.text}
+                      />
                     </View>
                     <View style={styles.themeMeta}>
                       <View style={styles.themeTitleRow}>
@@ -543,25 +841,49 @@ export default function OnboardingScreen() {
                             styles.themeLabel,
                             {
                               color: isSelected ? c.primary : c.text,
-                              fontFamily: "Inter_600SemiBold",
+                              fontFamily: 'Inter_600SemiBold',
                             },
                           ]}
                         >
                           {item.label}
                         </Text>
                         {item.badge && (
-                          <View style={[styles.themeBadge, { backgroundColor: c.primary + "25" }]}>
-                            <Text style={[styles.themeBadgeText, { color: c.primary, fontFamily: "Inter_600SemiBold" }]}>
+                          <View
+                            style={[
+                              styles.themeBadge,
+                              { backgroundColor: c.primary + '25' },
+                            ]}
+                          >
+                            <Text
+                              style={[
+                                styles.themeBadgeText,
+                                {
+                                  color: c.primary,
+                                  fontFamily: 'Inter_600SemiBold',
+                                },
+                              ]}
+                            >
                               {item.badge}
                             </Text>
                           </View>
                         )}
                       </View>
-                      <Text style={[styles.themeDesc, { color: c.text3, fontFamily: "Inter_400Regular" }]}>
+                      <Text
+                        style={[
+                          styles.themeDesc,
+                          { color: c.text3, fontFamily: 'Inter_400Regular' },
+                        ]}
+                      >
                         {item.desc}
                       </Text>
                     </View>
-                    {isSelected && <Feather name="check-circle" size={20} color={c.primary} />}
+                    {isSelected && (
+                      <Feather
+                        name="check-circle"
+                        size={20}
+                        color={c.primary}
+                      />
+                    )}
                   </TouchableOpacity>
                 );
               })}
@@ -572,7 +894,12 @@ export default function OnboardingScreen() {
                 style={[styles.primaryButton, { backgroundColor: c.primary }]}
                 onPress={nextStep}
               >
-                <Text style={[styles.primaryButtonText, { color: "#000", fontFamily: "Inter_700Bold" }]}>
+                <Text
+                  style={[
+                    styles.primaryButtonText,
+                    { color: '#000', fontFamily: 'Inter_700Bold' },
+                  ]}
+                >
                   Continue
                 </Text>
                 <Feather name="arrow-right" size={20} color="#000" />
@@ -585,56 +912,138 @@ export default function OnboardingScreen() {
         {step === 5 && (
           <View style={styles.stepContent}>
             <View style={styles.stepHeader}>
-              <View style={[styles.stepIconWrap, { backgroundColor: c.primary + "18" }]}>
+              <View
+                style={[
+                  styles.stepIconWrap,
+                  { backgroundColor: c.primary + '18' },
+                ]}
+              >
                 <Feather name="shield" size={28} color={c.primary} />
               </View>
-              <Text style={[styles.title, { color: c.text, fontFamily: "Inter_700Bold" }]}>
+              <Text
+                style={[
+                  styles.title,
+                  { color: c.text, fontFamily: 'Inter_700Bold' },
+                ]}
+              >
                 Data & Privacy
               </Text>
-              <Text style={[styles.subtitle, { color: c.text2, fontFamily: "Inter_400Regular" }]}>
-                LendLog is built from the ground up for privacy. No accounts, no servers, no telemetry.
+              <Text
+                style={[
+                  styles.subtitle,
+                  { color: c.text2, fontFamily: 'Inter_400Regular' },
+                ]}
+              >
+                LendLog is built from the ground up for privacy. No accounts, no
+                servers, no telemetry.
               </Text>
             </View>
 
             <View style={styles.privacyList}>
-              <View style={[styles.privacyCard, { backgroundColor: c.card, borderColor: c.border }]}>
-                <View style={[styles.privacyIcon, { backgroundColor: c.primary + "20" }]}>
+              <View
+                style={[
+                  styles.privacyCard,
+                  { backgroundColor: c.card, borderColor: c.border },
+                ]}
+              >
+                <View
+                  style={[
+                    styles.privacyIcon,
+                    { backgroundColor: c.primary + '20' },
+                  ]}
+                >
                   <Feather name="hard-drive" size={22} color={c.primary} />
                 </View>
                 <View style={styles.privacyMeta}>
-                  <Text style={[styles.privacyTitle, { color: c.text, fontFamily: "Inter_600SemiBold" }]}>
+                  <Text
+                    style={[
+                      styles.privacyTitle,
+                      { color: c.text, fontFamily: 'Inter_600SemiBold' },
+                    ]}
+                  >
                     100% On-Device Storage
                   </Text>
-                  <Text style={[styles.privacyDesc, { color: c.text2, fontFamily: "Inter_400Regular" }]}>
-                    All lending records, payments, and preferences are saved exclusively on your phone's internal storage. No cloud servers are involved.
+                  <Text
+                    style={[
+                      styles.privacyDesc,
+                      { color: c.text2, fontFamily: 'Inter_400Regular' },
+                    ]}
+                  >
+                    All lending records, payments, and preferences are saved
+                    exclusively on your phone&apos;s internal storage. No cloud
+                    servers are involved.
                   </Text>
                 </View>
               </View>
 
-              <View style={[styles.privacyCard, { backgroundColor: c.card, borderColor: c.border }]}>
-                <View style={[styles.privacyIcon, { backgroundColor: c.blue + "20" }]}>
+              <View
+                style={[
+                  styles.privacyCard,
+                  { backgroundColor: c.card, borderColor: c.border },
+                ]}
+              >
+                <View
+                  style={[
+                    styles.privacyIcon,
+                    { backgroundColor: c.blue + '20' },
+                  ]}
+                >
                   <Feather name="eye-off" size={22} color={c.blue} />
                 </View>
                 <View style={styles.privacyMeta}>
-                  <Text style={[styles.privacyTitle, { color: c.text, fontFamily: "Inter_600SemiBold" }]}>
+                  <Text
+                    style={[
+                      styles.privacyTitle,
+                      { color: c.text, fontFamily: 'Inter_600SemiBold' },
+                    ]}
+                  >
                     Zero Analytics or Telemetry
                   </Text>
-                  <Text style={[styles.privacyDesc, { color: c.text2, fontFamily: "Inter_400Regular" }]}>
-                    No tracking SDKs, no behavioral telemetry, no advertising IDs. What you record in LendLog remains entirely between you and your phone.
+                  <Text
+                    style={[
+                      styles.privacyDesc,
+                      { color: c.text2, fontFamily: 'Inter_400Regular' },
+                    ]}
+                  >
+                    No tracking SDKs, no behavioral telemetry, no advertising
+                    IDs. What you record in LendLog remains entirely between you
+                    and your phone.
                   </Text>
                 </View>
               </View>
 
-              <View style={[styles.privacyCard, { backgroundColor: c.card, borderColor: c.border }]}>
-                <View style={[styles.privacyIcon, { backgroundColor: c.orange + "20" }]}>
+              <View
+                style={[
+                  styles.privacyCard,
+                  { backgroundColor: c.card, borderColor: c.border },
+                ]}
+              >
+                <View
+                  style={[
+                    styles.privacyIcon,
+                    { backgroundColor: c.orange + '20' },
+                  ]}
+                >
                   <Feather name="download" size={22} color={c.orange} />
                 </View>
                 <View style={styles.privacyMeta}>
-                  <Text style={[styles.privacyTitle, { color: c.text, fontFamily: "Inter_600SemiBold" }]}>
+                  <Text
+                    style={[
+                      styles.privacyTitle,
+                      { color: c.text, fontFamily: 'Inter_600SemiBold' },
+                    ]}
+                  >
                     Full Backup & Restore Control
                   </Text>
-                  <Text style={[styles.privacyDesc, { color: c.text2, fontFamily: "Inter_400Regular" }]}>
-                    You can export standard JSON backup files from the Profile tab anytime to transfer records between phones or keep local offline copies.
+                  <Text
+                    style={[
+                      styles.privacyDesc,
+                      { color: c.text2, fontFamily: 'Inter_400Regular' },
+                    ]}
+                  >
+                    You can export standard JSON backup files from the Profile
+                    tab anytime to transfer records between phones or keep local
+                    offline copies.
                   </Text>
                 </View>
               </View>
@@ -645,7 +1054,12 @@ export default function OnboardingScreen() {
                 style={[styles.primaryButton, { backgroundColor: c.primary }]}
                 onPress={nextStep}
               >
-                <Text style={[styles.primaryButtonText, { color: "#000", fontFamily: "Inter_700Bold" }]}>
+                <Text
+                  style={[
+                    styles.primaryButtonText,
+                    { color: '#000', fontFamily: 'Inter_700Bold' },
+                  ]}
+                >
                   Review & Finish
                 </Text>
                 <Feather name="arrow-right" size={20} color="#000" />
@@ -658,72 +1072,148 @@ export default function OnboardingScreen() {
         {step === 6 && (
           <View style={styles.stepContent}>
             <View style={styles.stepHeader}>
-              <View style={[styles.stepIconWrap, { backgroundColor: c.primary + "18" }]}>
+              <View
+                style={[
+                  styles.stepIconWrap,
+                  { backgroundColor: c.primary + '18' },
+                ]}
+              >
                 <Feather name="check-circle" size={32} color={c.primary} />
               </View>
-              <Text style={[styles.title, { color: c.text, fontFamily: "Inter_700Bold" }]}>
-                You're All Set!
+              <Text
+                style={[
+                  styles.title,
+                  { color: c.text, fontFamily: 'Inter_700Bold' },
+                ]}
+              >
+                You&apos;re All Set!
               </Text>
-              <Text style={[styles.subtitle, { color: c.text2, fontFamily: "Inter_400Regular" }]}>
-                Here is a summary of your setup choices. You can modify any of these at any time in Profile & Settings.
+              <Text
+                style={[
+                  styles.subtitle,
+                  { color: c.text2, fontFamily: 'Inter_400Regular' },
+                ]}
+              >
+                Here is a summary of your setup choices. You can modify any of
+                these at any time in Profile & Settings.
               </Text>
             </View>
 
-            <View style={[styles.summaryCard, { backgroundColor: c.card, borderColor: c.border }]}>
-              <Text style={[styles.summaryHeading, { color: c.text3, fontFamily: "Inter_600SemiBold" }]}>
+            <View
+              style={[
+                styles.summaryCard,
+                { backgroundColor: c.card, borderColor: c.border },
+              ]}
+            >
+              <Text
+                style={[
+                  styles.summaryHeading,
+                  { color: c.text3, fontFamily: 'Inter_600SemiBold' },
+                ]}
+              >
                 CONFIGURATION SUMMARY
               </Text>
 
               <View style={styles.summaryItem}>
                 <View style={styles.summaryLabelRow}>
                   <Feather name="user" size={16} color={c.text3} />
-                  <Text style={[styles.summaryLabel, { color: c.text3, fontFamily: "Inter_500Medium" }]}>
+                  <Text
+                    style={[
+                      styles.summaryLabel,
+                      { color: c.text3, fontFamily: 'Inter_500Medium' },
+                    ]}
+                  >
                     Display Name
                   </Text>
                 </View>
-                <Text style={[styles.summaryValue, { color: c.text, fontFamily: "Inter_600SemiBold" }]}>
-                  {profileName.trim() || "Friend (Default)"}
+                <Text
+                  style={[
+                    styles.summaryValue,
+                    { color: c.text, fontFamily: 'Inter_600SemiBold' },
+                  ]}
+                >
+                  {profileName.trim() || 'Friend (Default)'}
                 </Text>
               </View>
 
-              <View style={[styles.summaryDivider, { backgroundColor: c.border }]} />
+              <View
+                style={[styles.summaryDivider, { backgroundColor: c.border }]}
+              />
 
               <View style={styles.summaryItem}>
                 <View style={styles.summaryLabelRow}>
                   <Feather name="dollar-sign" size={16} color={c.text3} />
-                  <Text style={[styles.summaryLabel, { color: c.text3, fontFamily: "Inter_500Medium" }]}>
+                  <Text
+                    style={[
+                      styles.summaryLabel,
+                      { color: c.text3, fontFamily: 'Inter_500Medium' },
+                    ]}
+                  >
                     Currency Symbol
                   </Text>
                 </View>
-                <Text style={[styles.summaryValue, { color: c.primary, fontFamily: "Inter_700Bold" }]}>
+                <Text
+                  style={[
+                    styles.summaryValue,
+                    { color: c.primary, fontFamily: 'Inter_700Bold' },
+                  ]}
+                >
                   {effectiveCurrency}
                 </Text>
               </View>
 
-              <View style={[styles.summaryDivider, { backgroundColor: c.border }]} />
+              <View
+                style={[styles.summaryDivider, { backgroundColor: c.border }]}
+              />
 
               <View style={styles.summaryItem}>
                 <View style={styles.summaryLabelRow}>
                   <Feather name="moon" size={16} color={c.text3} />
-                  <Text style={[styles.summaryLabel, { color: c.text3, fontFamily: "Inter_500Medium" }]}>
+                  <Text
+                    style={[
+                      styles.summaryLabel,
+                      { color: c.text3, fontFamily: 'Inter_500Medium' },
+                    ]}
+                  >
                     Theme Mode
                   </Text>
                 </View>
-                <Text style={[styles.summaryValue, { color: c.text, fontFamily: "Inter_600SemiBold" }]}>
-                  {selectedTheme === "dark" ? "Dark Mode" : selectedTheme === "light" ? "Light Mode" : "System Default"}
+                <Text
+                  style={[
+                    styles.summaryValue,
+                    { color: c.text, fontFamily: 'Inter_600SemiBold' },
+                  ]}
+                >
+                  {selectedTheme === 'dark'
+                    ? 'Dark Mode'
+                    : selectedTheme === 'light'
+                      ? 'Light Mode'
+                      : 'System Default'}
                 </Text>
               </View>
 
-              <View style={[styles.summaryDivider, { backgroundColor: c.border }]} />
+              <View
+                style={[styles.summaryDivider, { backgroundColor: c.border }]}
+              />
 
               <View style={styles.summaryItem}>
                 <View style={styles.summaryLabelRow}>
                   <Feather name="shield" size={16} color={c.text3} />
-                  <Text style={[styles.summaryLabel, { color: c.text3, fontFamily: "Inter_500Medium" }]}>
+                  <Text
+                    style={[
+                      styles.summaryLabel,
+                      { color: c.text3, fontFamily: 'Inter_500Medium' },
+                    ]}
+                  >
                     Storage & Privacy
                   </Text>
                 </View>
-                <Text style={[styles.summaryValue, { color: c.primary, fontFamily: "Inter_600SemiBold" }]}>
+                <Text
+                  style={[
+                    styles.summaryValue,
+                    { color: c.primary, fontFamily: 'Inter_600SemiBold' },
+                  ]}
+                >
                   100% Local & Private
                 </Text>
               </View>
@@ -735,7 +1225,12 @@ export default function OnboardingScreen() {
                 onPress={handleFinish}
                 accessibilityLabel="Start Using LendLog"
               >
-                <Text style={[styles.primaryButtonText, { color: "#000", fontFamily: "Inter_700Bold" }]}>
+                <Text
+                  style={[
+                    styles.primaryButtonText,
+                    { color: '#000', fontFamily: 'Inter_700Bold' },
+                  ]}
+                >
                   Start Using LendLog
                 </Text>
                 <Feather name="arrow-right" size={20} color="#000" />
@@ -763,7 +1258,12 @@ export default function OnboardingScreen() {
             activeOpacity={0.8}
             accessibilityLabel="Continue to appearance setup"
           >
-            <Text style={[styles.primaryButtonText, { color: c.primaryForeground, fontFamily: "Inter_700Bold" }]}>
+            <Text
+              style={[
+                styles.primaryButtonText,
+                { color: c.primaryForeground, fontFamily: 'Inter_700Bold' },
+              ]}
+            >
               Continue
             </Text>
             <Feather name="arrow-right" size={20} color={c.primaryForeground} />
@@ -786,9 +1286,9 @@ const styles = StyleSheet.create({
     flexGrow: 1,
   },
   headerRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     marginBottom: 20,
     gap: 12,
   },
@@ -797,12 +1297,12 @@ const styles = StyleSheet.create({
     height: 38,
     borderRadius: 12,
     borderWidth: 1,
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   progressContainer: {
     flex: 1,
-    alignItems: "center",
+    alignItems: 'center',
     gap: 6,
   },
   progressText: {
@@ -810,13 +1310,13 @@ const styles = StyleSheet.create({
     letterSpacing: 0.8,
   },
   progressBarTrack: {
-    width: "100%",
+    width: '100%',
     height: 4,
     borderRadius: 2,
-    overflow: "hidden",
+    overflow: 'hidden',
   },
   progressBarFill: {
-    height: "100%",
+    height: '100%',
     borderRadius: 2,
   },
   skipBtn: {
@@ -828,10 +1328,10 @@ const styles = StyleSheet.create({
   },
   stepContent: {
     flex: 1,
-    justifyContent: "space-between",
+    justifyContent: 'space-between',
   },
   welcomeHero: {
-    alignItems: "center",
+    alignItems: 'center',
     marginVertical: 20,
     gap: 12,
   },
@@ -839,18 +1339,18 @@ const styles = StyleSheet.create({
     width: 84,
     height: 84,
     borderRadius: 24,
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: 'center',
+    justifyContent: 'center',
     marginBottom: 8,
   },
   title: {
     fontSize: 26,
-    textAlign: "center",
+    textAlign: 'center',
     lineHeight: 32,
   },
   subtitle: {
     fontSize: 14,
-    textAlign: "center",
+    textAlign: 'center',
     lineHeight: 20,
     paddingHorizontal: 12,
   },
@@ -859,19 +1359,19 @@ const styles = StyleSheet.create({
     marginVertical: 12,
   },
   featureCard: {
-    flexDirection: "row",
+    flexDirection: 'row',
     padding: 14,
     borderRadius: 16,
     borderWidth: 1,
-    alignItems: "center",
+    alignItems: 'center',
     gap: 14,
   },
   featureIcon: {
     width: 44,
     height: 44,
     borderRadius: 12,
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   featureTextCol: {
     flex: 1,
@@ -885,7 +1385,7 @@ const styles = StyleSheet.create({
     lineHeight: 18,
   },
   stepHeader: {
-    alignItems: "center",
+    alignItems: 'center',
     marginVertical: 14,
     gap: 8,
   },
@@ -893,8 +1393,8 @@ const styles = StyleSheet.create({
     width: 60,
     height: 60,
     borderRadius: 18,
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: 'center',
+    justifyContent: 'center',
     marginBottom: 4,
   },
   formGroup: {
@@ -913,11 +1413,11 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   calloutCard: {
-    flexDirection: "row",
+    flexDirection: 'row',
     padding: 14,
     borderRadius: 14,
     borderWidth: 1,
-    alignItems: "center",
+    alignItems: 'center',
     gap: 12,
     marginVertical: 8,
   },
@@ -938,18 +1438,18 @@ const styles = StyleSheet.create({
     letterSpacing: 0.8,
   },
   previewRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
   },
   previewItem: {
-    alignItems: "center",
+    alignItems: 'center',
     flex: 1,
   },
   previewDivider: {
     width: 1,
     height: 28,
-    backgroundColor: "rgba(128,128,128,0.2)",
+    backgroundColor: 'rgba(128,128,128,0.2)',
   },
   previewLabel: {
     fontSize: 11,
@@ -967,8 +1467,8 @@ const styles = StyleSheet.create({
     marginVertical: 8,
   },
   currencyCard: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     padding: 12,
     borderRadius: 14,
     borderWidth: 1,
@@ -978,8 +1478,8 @@ const styles = StyleSheet.create({
     width: 42,
     height: 42,
     borderRadius: 12,
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   symbolText: {
     fontSize: 17,
@@ -1006,8 +1506,8 @@ const styles = StyleSheet.create({
     marginVertical: 16,
   },
   themeCard: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     padding: 14,
     borderRadius: 16,
     borderWidth: 1,
@@ -1017,16 +1517,16 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 12,
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   themeMeta: {
     flex: 1,
     gap: 3,
   },
   themeTitleRow: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: 8,
   },
   themeLabel: {
@@ -1049,19 +1549,19 @@ const styles = StyleSheet.create({
     marginVertical: 14,
   },
   privacyCard: {
-    flexDirection: "row",
+    flexDirection: 'row',
     padding: 14,
     borderRadius: 16,
     borderWidth: 1,
-    alignItems: "flex-start",
+    alignItems: 'flex-start',
     gap: 14,
   },
   privacyIcon: {
     width: 44,
     height: 44,
     borderRadius: 12,
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: 'center',
+    justifyContent: 'center',
     marginTop: 2,
   },
   privacyMeta: {
@@ -1088,13 +1588,13 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   summaryItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
   },
   summaryLabelRow: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: 8,
   },
   summaryLabel: {
@@ -1113,16 +1613,16 @@ const styles = StyleSheet.create({
   primaryButton: {
     height: 52,
     borderRadius: 14,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
     gap: 8,
   },
   primaryButtonText: {
     fontSize: 16,
   },
   textButton: {
-    alignItems: "center",
+    alignItems: 'center',
     paddingVertical: 8,
   },
   textButtonText: {
@@ -1132,11 +1632,11 @@ const styles = StyleSheet.create({
     width: 24,
     height: 24,
     borderRadius: 12,
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   floatingFooter: {
-    position: "absolute",
+    position: 'absolute',
     left: 0,
     right: 0,
     bottom: 0,
@@ -1144,7 +1644,7 @@ const styles = StyleSheet.create({
     paddingTop: 12,
     borderTopWidth: 1,
     elevation: 8,
-    shadowColor: "#000",
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: -3 },
     shadowOpacity: 0.15,
     shadowRadius: 6,

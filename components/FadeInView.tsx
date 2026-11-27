@@ -1,5 +1,5 @@
-import React from "react";
-import { StyleProp, View, ViewStyle } from "react-native";
+import React from 'react';
+import { StyleProp, View, ViewStyle } from 'react-native';
 
 interface Props {
   children: React.ReactNode;
@@ -7,9 +7,5 @@ interface Props {
 }
 
 export function FadeInView({ children, style }: Props) {
-  return (
-    <View style={[{ flex: 1 }, style]}>
-      {children}
-    </View>
-  );
+  return <View style={[{ flex: 1 }, style]}>{children}</View>;
 }
