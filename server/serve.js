@@ -9,6 +9,8 @@
  * Zero external dependencies — uses only Node.js built-ins (http, fs, path).
  */
 
+/* global __dirname */
+
 const http = require("http");
 const fs = require("fs");
 const path = require("path");

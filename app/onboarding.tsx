@@ -606,7 +606,7 @@ export default function OnboardingScreen() {
                     100% On-Device Storage
                   </Text>
                   <Text style={[styles.privacyDesc, { color: c.text2, fontFamily: "Inter_400Regular" }]}>
-                    All lending records, payments, and preferences are saved exclusively on your phone's internal storage. No cloud servers are involved.
+                    All lending records, payments, and preferences are saved exclusively on your phone&apos;s internal storage. No cloud servers are involved.
                   </Text>
                 </View>
               </View>
@@ -662,7 +662,7 @@ export default function OnboardingScreen() {
                 <Feather name="check-circle" size={32} color={c.primary} />
               </View>
               <Text style={[styles.title, { color: c.text, fontFamily: "Inter_700Bold" }]}>
-                You're All Set!
+                You&apos;re All Set!
               </Text>
               <Text style={[styles.subtitle, { color: c.text2, fontFamily: "Inter_400Regular" }]}>
                 Here is a summary of your setup choices. You can modify any of these at any time in Profile & Settings.
